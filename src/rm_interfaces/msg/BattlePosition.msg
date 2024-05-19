@@ -1,0 +1,2 @@
+int16 robots_num
+rm_decision_interfaces/RobotPosition[] robots_position
