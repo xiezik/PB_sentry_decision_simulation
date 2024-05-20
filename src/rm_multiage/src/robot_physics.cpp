@@ -60,16 +60,16 @@ rm_common::ErrorInfo RobotPhysics::Init() {
     rclcpp::SensorDataQoS(), 
     std::bind(&RobotPhysics::PoseCallback, this, std::placeholders::_1));
 
-    roboHeat_[0] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_0/heat_power", 
+    roboHeat_ptr[0] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_0/heat_power", 
     rclcpp::SensorDataQoS(), 
     std::bind(&RobotPhysics::SetRobotHeat, this, std::placeholders::_1,0));
-    roboHeat_[1] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_1/heat_power", 
+    roboHeat_ptr[1] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_1/heat_power", 
     rclcpp::SensorDataQoS(), 
     std::bind(&RobotPhysics::SetRobotHeat, this, std::placeholders::_1,1));
-    roboHeat_[2] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_2/heat_power", 
+    roboHeat_ptr[2] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_2/heat_power", 
     rclcpp::SensorDataQoS(), 
     std::bind(&RobotPhysics::SetRobotHeat, this, std::placeholders::_1,2));
-    roboHeat_[3] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_3/heat_power", 
+    roboHeat_ptr[3] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_3/heat_power", 
     rclcpp::SensorDataQoS(), 
     std::bind(&RobotPhysics::SetRobotHeat, this, std::placeholders::_1,3));
 
@@ -196,7 +196,7 @@ void RobotPhysics::PoseCallback(const nav_msgs::msg::Odometry::ConstSharedPtr & 
         }
         tf2::Quaternion q;
         tf2::convert(msg->pose.pose.orientation, q);
-        geometry_msgs::TransformStamped transformStamped;
+        geometry_msgs::msg::TransformStamped transformStamped;
         transformStamped.header.stamp = rclcpp::Clock().now();
         transformStamped.header.frame_id = "map";
         transformStamped.child_frame_id = robot_name + "/base_pose_ground_truth";
@@ -215,7 +215,9 @@ void RobotPhysics::PublishGimbalYaw()
     int i;
     for(i=0;i<4;i++)
     {
-        gimbalYaw_pub_[i]->publish(robots_[i]->GetGimbalYaw());
+        auto msg = std_msgs::msg::Float32MultiArray();
+        msg.data.push_back(static_cast<float>(robots_[i]->GetGimbalYaw()));
+        gimbalYaw_pub_[i]->publish(msg);
     }
 
 }
@@ -339,7 +341,7 @@ void RobotPhysics::RobotShoot(std::string robot_name)
         if(FindRobot(robot_name)->roboStatus_.remain_ammo <= 0||
         FindRobot(robot_name)->roboStatus_.remain_hp<=0 ||
          !FindRobot(robot_name)->roboStatus_.shooter_output||
-         roboHeat_[0]->shooter_heat > HeatControlLimit)
+         robotHeat[0]->shooter_heat > HeatControlLimit)
             return;
     }
     else if(robot_name=="robot_1")
@@ -347,7 +349,7 @@ void RobotPhysics::RobotShoot(std::string robot_name)
         if(FindRobot(robot_name)->roboStatus_.remain_ammo <= 0 ||
          FindRobot(robot_name)->roboStatus_.remain_hp<=0 ||
           !FindRobot(robot_name)->roboStatus_.shooter_output||
-          roboHeat_[1].shooter_heat > HeatControlLimit)
+          robotHeat[1]->shooter_heat > HeatControlLimit)
             return;
     }
     else if(robot_name=="robot_2")
@@ -355,7 +357,7 @@ void RobotPhysics::RobotShoot(std::string robot_name)
         if(FindRobot(robot_name)->roboStatus_.remain_ammo <= 0||
         FindRobot(robot_name)->roboStatus_.remain_hp<=0 ||
          !FindRobot(robot_name)->roboStatus_.shooter_output ||
-         roboHeat_[2].shooter_heat > HeatControlLimit)
+         robotHeat[2]->shooter_heat > HeatControlLimit)
             return;
     }
     else if(robot_name=="robot_3")
@@ -363,7 +365,7 @@ void RobotPhysics::RobotShoot(std::string robot_name)
         if(FindRobot(robot_name)->roboStatus_.remain_ammo <= 0||
         FindRobot(robot_name)->roboStatus_.remain_hp<=0 ||
          !FindRobot(robot_name)->roboStatus_.shooter_output||
-         roboHeat_[3].shooter_heat > HeatControlLimit)
+         robotHeat[3]->shooter_heat > HeatControlLimit)
             return;
     }
     else
@@ -407,7 +409,7 @@ void RobotPhysics::SendShootRobotInfo(std::string robot_name)
 
 void RobotPhysics::SetRobotHeat(const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg, int index)
 {
-    roboHeat_[index] = *msg;
+    robotHeat[index] = msg;
 }
 
 void RobotPhysics::RFID_detect()

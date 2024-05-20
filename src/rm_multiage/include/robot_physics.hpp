@@ -74,7 +74,8 @@ private:
     std::vector<RobotTF* > robots_;
     std::vector<Bullet* > bullets_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr pose_sub_[4];
-    rclcpp::Subscription<rm_decision_interfaces::msg::RobotHeat>::SharedPtr roboHeat_[4];
+    rclcpp::Subscription<rm_decision_interfaces::msg::RobotHeat>::SharedPtr roboHeat_ptr[4];
+    std::shared_ptr<rm_decision_interfaces::msg::RobotHeat> robotHeat[4];
     std::shared_ptr<tf2_ros::Buffer> tfBuffer_;
 
     rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr gimbalYaw_pub_[4];
