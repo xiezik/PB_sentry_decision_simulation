@@ -24,6 +24,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RobotPosition.msg"
   "msg/BattlePosition.msg"
   "msg/BulletsInfo.msg"
+  "msg/GimbalAngle.msg"
+  "msg/GimbalRate.msg"
+  "msg/TwistAccel.msg"
 
   "srv/BasicExecutor.srv"
   "srv/FricWhl.srv"
