@@ -1,10 +1,10 @@
 #ifndef HERO_DECISION_CHASE_BEHAVIOR_H
 #define HERO_DECISION_CHASE_BEHAVIOR_H
 
-#include "io/io.h"
+// #include "io/io.hpp"
 
-#include "../blackboard/blackboard.h"
-#include "../executor/chassis_executor.h"
+#include "../blackboard/blackboard.hpp"
+#include "../executor/chassis_executor.hpp"
 #include "../behavior_tree/behavior_state.h"
 #include "../proto/decision.pb.h"
 
@@ -60,11 +60,11 @@ class ChaseBehavior {
       } else {
 
         auto orientation = tf::createQuaternionMsgFromYaw(yaw);
-        geometry_msgs::PoseStamped reduce_goal;
+        geometry_msgs::msg::PoseStamped reduce_goal;
         reduce_goal.pose.orientation = robot_map_pose.pose.orientation;
 
         reduce_goal.header.frame_id = "map";
-        reduce_goal.header.stamp = ros::Time::now();
+        reduce_goal.header.stamp = rclcpp::Clock().now();
         reduce_goal.pose.position.x = chase_buffer_[(chase_count_ + 2 - 1) % 2].pose.position.x - 1.2 * cos(yaw);
         reduce_goal.pose.position.y = chase_buffer_[(chase_count_ + 2 - 1) % 2].pose.position.y - 1.2 * sin(yaw);
         auto enemy_x = reduce_goal.pose.position.x;
@@ -143,7 +143,7 @@ class ChaseBehavior {
     return chassis_executor_->Update();
   }
 
-  void SetGoal(geometry_msgs::PoseStamped chase_goal) {
+  void SetGoal(geometry_msgs::msg::PoseStamped chase_goal) {
     chase_goal_ = chase_goal;
   }
 
@@ -157,10 +157,10 @@ class ChaseBehavior {
   Blackboard* const blackboard_;
 
   //! chase goal
-  geometry_msgs::PoseStamped chase_goal_;
+  geometry_msgs::msg::PoseStamped chase_goal_;
 
   //! chase buffer
-  std::vector<geometry_msgs::PoseStamped> chase_buffer_;
+  std::vector<geometry_msgs::msg::PoseStamped> chase_buffer_;
   unsigned int chase_count_;
 
   //! cancel flag

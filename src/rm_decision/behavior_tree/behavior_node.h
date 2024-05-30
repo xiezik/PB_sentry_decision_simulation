@@ -22,7 +22,7 @@
 #include <thread>
 #include <vector>
 
-#include "../blackboard/blackboard.h"
+#include "../blackboard/blackboard.hpp"
 #include "behavior_state.h"
 
 namespace hero_decision{

@@ -3,7 +3,7 @@
    href="http://download.ros.org/schema/package_format3.xsd"
    schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>rm_decision</name>
+  <name>rm_costmap</name>
   <version>0.1.0</version>
   <description>A template for ROS packages.</description>
   <maintainer email="chen.junn@outlook.com">Chen Jun</maintainer>
@@ -22,7 +22,12 @@
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>laser_geometry</depend>
+  <depend>pcl_conversions</depend>
+  <depend>pcl_ros</depend>
   <depend>google</depend>
+  <depend>Eigen</depend>
   <depend>action_msgs</depend>
   <depend>rm_decision_interfaces</depend>
 

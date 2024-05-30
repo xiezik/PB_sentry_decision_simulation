@@ -1,14 +1,14 @@
 #ifndef HERO_DECISION_SEARCH_BEHAVIOR_H
 #define HERO_DECISION_SEARCH_BEHAVIOR_H
 
-#include "io/io.h"
+// #include "io/io.h"
 
-#include "../blackboard/blackboard.h"
-#include "../executor/chassis_executor.h"
+#include "../blackboard/blackboard.hpp"
+#include "../executor/chassis_executor.hpp"
 #include "../behavior_tree/behavior_state.h"
-#include "../proto/decision.pb.h"
+#include "../proto/decision.pb.hpp"
 
-#include "line_iterator.h"
+#include "line_iterator.hpp"
 
 namespace hero_decision {
 class SearchBehavior {
@@ -84,9 +84,9 @@ class SearchBehavior {
 
         auto orientation = tf::createQuaternionMsgFromYaw(yaw);
 
-        geometry_msgs::PoseStamped goal;
+        geometry_msgs::msg::PoseStamped goal;
         goal.header.frame_id = "map";
-        goal.header.stamp = ros::Time::now();
+        goal.header.stamp = rclcpp::Clock().now();
         goal.pose.position = last_position_.pose.position;
         goal.pose.orientation = orientation;
         chassis_executor_->Execute(goal);
@@ -176,7 +176,7 @@ class SearchBehavior {
     return true;
   }
 
-  void SetLastPosition(geometry_msgs::PoseStamped last_position) {
+  void SetLastPosition(geometry_msgs::msg::PoseStamped last_position) {
     last_position_ = last_position;
     search_count_ = 5;
   }
@@ -191,14 +191,14 @@ class SearchBehavior {
   Blackboard* const blackboard_;
 
   //! chase goal
-  geometry_msgs::PoseStamped last_position_;
+  geometry_msgs::msg::PoseStamped last_position_;
 
   //! search buffer
-  std::vector<geometry_msgs::PoseStamped> search_region_1_;
-  std::vector<geometry_msgs::PoseStamped> search_region_2_;
-  std::vector<geometry_msgs::PoseStamped> search_region_3_;
-  std::vector<geometry_msgs::PoseStamped> search_region_4_;
-  std::vector<geometry_msgs::PoseStamped> search_region_;
+  std::vector<geometry_msgs::msg::PoseStamped> search_region_1_;
+  std::vector<geometry_msgs::msg::PoseStamped> search_region_2_;
+  std::vector<geometry_msgs::msg::PoseStamped> search_region_3_;
+  std::vector<geometry_msgs::msg::PoseStamped> search_region_4_;
+  std::vector<geometry_msgs::msg::PoseStamped> search_region_;
   unsigned int search_count_;
   unsigned int search_index_;
 

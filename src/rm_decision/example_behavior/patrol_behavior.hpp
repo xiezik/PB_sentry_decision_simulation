@@ -1,14 +1,15 @@
 #ifndef HERO_DECISION_PATROL_BEHAVIOR_H
 #define HERO_DECISION_PATROL_BEHAVIOR_H
 
-#include "io/io.h"
+// #include "io/io.h"
 
-#include "../blackboard/blackboard.h"
-#include "../executor/chassis_executor.h"
+#include "../blackboard/blackboard.hpp"
+#include "../executor/chassis_executor.hpp"
 #include "../behavior_tree/behavior_state.h"
-#include "../proto/decision.pb.h"
+#include "../proto/decision.pb.hpp"
 
-#include "line_iterator.h"
+#include "line_iterator.hpp"
+#include <rclcpp/logger.hpp>
 
 namespace hero_decision {
 class PatrolBehavior {
@@ -22,7 +23,7 @@ class PatrolBehavior {
     point_size_ = 0;
 
     if (!LoadParam(proto_file_path)) {
-      ROS_ERROR("%s can't open file", __FUNCTION__);
+      RCLCPP_ERROR(rclcpp::get_logger("PatrolBehavior"),"%s can't open file", __FUNCTION__);
     }
 
   }
@@ -36,7 +37,7 @@ class PatrolBehavior {
     if (executor_state != BehaviorState::RUNNING) {
 
       if (patrol_goals_.empty()) {
-        ROS_ERROR("patrol goal is empty");
+        RCLCPP_ERROR(rclcpp::get_logger("PatrolBehavior"),"patrol goal is empty");
         return;
       }
 
@@ -69,7 +70,7 @@ class PatrolBehavior {
       patrol_goals_[i].pose.position.y = decision_config.point(i).y();
       patrol_goals_[i].pose.position.z = decision_config.point(i).z();
 
-      tf::Quaternion quaternion = tf::createQuaternionFromRPY(decision_config.point(i).roll(),
+      tf2::Quaternion quaternion = tf2::createQuaternionFromRPY(decision_config.point(i).roll(),
                                                               decision_config.point(i).pitch(),
                                                               decision_config.point(i).yaw());
       patrol_goals_[i].pose.orientation.x = quaternion.x();
@@ -91,7 +92,7 @@ class PatrolBehavior {
   Blackboard* const blackboard_;
 
   //! patrol buffer
-  std::vector<geometry_msgs::PoseStamped> patrol_goals_;
+  std::vector<geometry_msgs::msg::PoseStamped> patrol_goals_;
   unsigned int patrol_count_;
   unsigned int point_size_;
 

@@ -2,10 +2,10 @@
 #define HERO_DECISION_GOAL_BEHAVIOR_H
 
 
-#include "io/io.h"
+// #include "io/io.h"
 
-#include "../blackboard/blackboard.h"
-#include "../executor/chassis_executor.h"
+#include "../blackboard/blackboard.hpp"
+#include "../executor/chassis_executor.hpp"
 #include "../behavior_tree/behavior_state.h"
 
 
@@ -41,7 +41,7 @@ class GoalBehavior {
   Blackboard* const blackboard_;
 
   //! planning goal
-  geometry_msgs::PoseStamped planning_goal_;
+  geometry_msgs::msg::PoseStamped planning_goal_;
 
 };
 }

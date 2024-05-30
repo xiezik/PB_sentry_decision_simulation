@@ -1,15 +1,16 @@
 #ifndef HERO_DECISION_ESCAPEBEHAVIOR_H
 #define HERO_DECISION_ESCAPEBEHAVIOR_H
 
-#include "io/io.h"
-#include "hero_msgs/TwistAccel.h"
+// #include "io/io.h"
+#include "rm_decision_interfaces/msg/twist_accel.hpp"
 
-#include "../blackboard/blackboard.h"
-#include "../executor/chassis_executor.h"
+#include "../blackboard/blackboard.hpp"
+#include "../executor/chassis_executor.hpp"
 #include "../behavior_tree/behavior_state.h"
-#include "../proto/decision.pb.h"
+#include "../proto/decision.pb.hpp"
 
-#include "line_iterator.h"
+#include "line_iterator.hpp"
+#include <rclcpp/time.hpp>
 
 namespace hero_decision{
 class EscapeBehavior {
@@ -30,7 +31,7 @@ class EscapeBehavior {
     whirl_vel_.accel.angular.z = 0;
 
     if (!LoadParam(proto_file_path)) {
-      ROS_ERROR("%s can't open file", __FUNCTION__);
+      RCLCPP_ERROR(rclcpp::get_logger("EscapeBehavior"),"%s can't open file", __FUNCTION__);
     }
 
   }
@@ -43,7 +44,7 @@ class EscapeBehavior {
 
       if (blackboard_->IsEnemyDetected()) {
 
-        geometry_msgs::PoseStamped enemy;
+        geometry_msgs::msg::PoseStamped enemy;
         enemy = blackboard_->GetEnemy();
         float goal_yaw, goal_x, goal_y;
         unsigned int goal_cell_x, goal_cell_y;
@@ -125,9 +126,9 @@ class EscapeBehavior {
         goal_yaw = static_cast<float > (std::atan2(pose_to_enemy.coeffRef(1), pose_to_enemy.coeffRef(0)));
         auto quaternion = tf::createQuaternionMsgFromRollPitchYaw(0,0,goal_yaw);
 
-        geometry_msgs::PoseStamped escape_goal;
+        geometry_msgs::msg::PoseStamped escape_goal;
         escape_goal.header.frame_id = "map";
-        escape_goal.header.stamp = ros::Time::now();
+        escape_goal.header.stamp = rclcpp::Clock().now();
         escape_goal.pose.position.x = goal_x;
         escape_goal.pose.position.y = goal_y;
         escape_goal.pose.orientation = quaternion;
@@ -188,7 +189,7 @@ class EscapeBehavior {
 
   //! whirl velocity
 //  geometry_msgs::Twist whirl_vel_;
-  hero_msgs::TwistAccel whirl_vel_;
+  rm_decision_interfaces::msg::TwistAccel whirl_vel_;
   
 };
 }

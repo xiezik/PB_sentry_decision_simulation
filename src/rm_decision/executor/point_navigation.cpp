@@ -1,10 +1,10 @@
-#include "ros/ros.h"
-#include "std_msgs/String.h"
-#include "chassis_executor.h"
-#include <actionlib/client/simple_action_client.h>
-#include "hero_msgs/GlobalPlannerAction.h"
-#include "hero_msgs/LocalPlannerAction.h"
-
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/string.hpp"
+#include "chassis_executor.hpp"
+// #include <actionlib/client/simple_action_client.h>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include "rm_decision_interfaces/action/global_planner.hpp"
+#include "rm_decision_interfaces/action/local_planner.hpp"
 namespace hero_decision{
 
 
@@ -25,13 +25,13 @@ typedef actionlib::SimpleActionClient<hero_msgs::GlobalPlannerAction> GlobalActi
   ros::Subscriber sub_;
   ros::Publisher yaw_speed_pub_;
   void GlobalPlannerFeedbackCallback(const hero_msgs::GlobalPlannerFeedbackConstPtr& global_planner_feedback);
-  void chatterCallback(const geometry_msgs::PoseStamped &goal);
+  void chatterCallback(const geometry_msgs::msg::PoseStamped &goal);
   double set_yaw;
   double set_yaw_speed_;
 
 };
 
-void PointNavigation::chatterCallback(const geometry_msgs::PoseStamped &goal)
+void PointNavigation::chatterCallback(const geometry_msgs::msg::PoseStamped &goal)
 {
   global_planner_goal_.goal = goal;
   global_planner_client_.sendGoal(global_planner_goal_,

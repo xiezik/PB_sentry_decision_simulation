@@ -1,14 +1,14 @@
 #ifndef HERO_DECISION_BACK_BOOT_AREA_BEHAVIOR_H
 #define HERO_DECISION_BACK_BOOT_AREA_BEHAVIOR_H
 
-#include "io/io.h"
+// #include "io/io.h"
 
-#include "../blackboard/blackboard.h"
-#include "../executor/chassis_executor.h"
+#include "../blackboard/blackboard.hpp"
+#include "../executor/chassis_executor.hpp"
 #include "../behavior_tree/behavior_state.h"
-#include "../proto/decision.pb.h"
+#include "../proto/decision.pb.hpp"
 
-#include "line_iterator.h"
+#include "line_iterator.hpp"
 
 namespace hero_decision {
 class BackBootAreaBehavior {

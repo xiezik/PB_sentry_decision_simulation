@@ -20,7 +20,7 @@
 
 #include <chrono>
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 #include "behavior_node.h"
 

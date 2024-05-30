@@ -17,15 +17,15 @@
 #ifndef HERO_DECISION_BLACKBOARD_H
 #define HERO_DECISION_BLACKBOARD_H
 
-#include <actionlib/client/simple_action_client.h>
-#include <tf/tf.h>
-#include <tf/transform_listener.h>
-#include <ros/ros.h>
-#include <geometry_msgs/PoseStamped.h>
+// #include <actionlib/client/simple_action_client.h>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <tf2_ros/transform_listener.h>
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 
-#include "hero_msgs/ArmorDetectionAction.h"
+#include "rm_decision_interfaces/action/armor_detection.hpp"
 
-#include "io/io.h"
+// #include "io/io.h"
 #include "../proto/decision.pb.h"
 #include "costmap/costmap_interface.h"
 
