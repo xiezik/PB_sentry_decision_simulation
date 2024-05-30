@@ -11,7 +11,6 @@
 
 
 namespace rmMultistage {
-using rm_common::Point2D;
 
     class Bullet{
     public:
@@ -22,9 +21,9 @@ using rm_common::Point2D;
         {return shooter_;}
         rm_decision_interfaces::msg::BulletMove GetBulletMove();
         bool ReachBoundary(int xmax, int ymax);
-        Point2D GetPositionNow()
+        rm_common::Point2D GetPositionNow()
         {return position_now_;}
-        Point2D GetPositionLast()
+        rm_common::Point2D GetPositionLast()
         {return position_last_;}
         float GetDistance()
         {return coveredDistance_;}
@@ -32,9 +31,9 @@ using rm_common::Point2D;
         std::string shooter_;
         double speed_;
         double yaw_;//form blue to red is 0, anciclockwise positive
-        Point2D origin_;
-        Point2D position_now_;
-        Point2D position_last_;
+        rm_common::Point2D origin_;
+        rm_common::Point2D position_now_;
+        rm_common::Point2D position_last_;
         float coveredDistance_;
     };
 

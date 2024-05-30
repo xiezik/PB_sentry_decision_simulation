@@ -27,6 +27,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/GimbalAngle.msg"
   "msg/GimbalRate.msg"
   "msg/TwistAccel.msg"
+  "msg/BasicExecutorStatus.msg"
 
   "srv/BasicExecutor.srv"
   "srv/FricWhl.srv"

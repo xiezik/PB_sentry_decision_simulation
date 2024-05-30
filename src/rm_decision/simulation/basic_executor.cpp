@@ -1,10 +1,11 @@
-#include "basic_executor.h"
+#include "basic_executor.hpp"
 #include <chrono>
 #include <sys/time.h>
 #include <thread>
 #include "hero_map/hero_map.h"
 #include "hero_math/math.h"
-#include "tf/tf.h"
+#include "../../rm_common/include/math.hpp"
+//
 
 namespace hero_decision {
 
@@ -13,7 +14,7 @@ using namespace hero_decision;
 BasicExecutor::BasicExecutor()
 {
   Init();
-  ROS_INFO("[basic_executor]%s init!",my_name_.c_str());
+  RCLCPP_INFO(this->get_logger(),"[basic_executor]%s init!",my_name_.c_str());
 }
 
 void BasicExecutor::Init()

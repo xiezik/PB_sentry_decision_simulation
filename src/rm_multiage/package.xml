@@ -18,9 +18,9 @@
   <!-- depend: build, export, and execution dependency -->
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
-  <depend>actionlib</depend>
   <depend>geometry_msgs</depend>
   <depend>tf2</depend>
+  <depend>tf2_ros</depend>
   <depend>rm_decision_interfaces</depend>
 
   <test_depend>ament_lint_auto</test_depend>

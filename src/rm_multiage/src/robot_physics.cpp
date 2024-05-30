@@ -1,4 +1,5 @@
 #include "robot_physics.hpp"
+#include <rclcpp/executors.hpp>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -248,7 +249,7 @@ int RobotPhysics::ArmorHitDetect()
                 {
                     if(hitResult > 0 && hitResult < 5)
                     {
-                        ROS_INFO("%s hit %s %s",(*iter)->GetShooter().c_str(), robot_name[i].c_str(),aromor_name[hitResult - 1].c_str());
+                        RCLCPP_INFO(this->get_logger(),"%s hit %s %s",(*iter)->GetShooter().c_str(), robot_name[i].c_str(),aromor_name[hitResult - 1].c_str());
                         SendHitRobotInfo(robot_name[i],hitResult - 1);
                     }
 
@@ -288,10 +289,9 @@ void RobotPhysics::BulletJudge()
 
 void RobotPhysics::PublishBulletsInfo()
 {
-    int i = 0;
     rm_decision_interfaces::msg::BulletsInfo bulletInfo;
     bulletInfo.bullet_num = bullets_.size();
-    for(i = 0; i< bullets_.size();i++)
+    for(size_t i = 0; i< bullets_.size();i++)
     {
         bulletInfo.bullets.emplace_back(bullets_.at(i)->GetBulletMove());
     }
@@ -428,7 +428,7 @@ void RobotPhysics::RFID_detect()
                 //ROS_INFO("rect %d: %f,%f, %f,%f",j+1,RFID_F_x[j],RFID_F_y[j],RFID_F_x[j] + RFID_width ,RFID_F_y[j] + RFID_height);
                 infoDivider ++;
                 if(infoDivider % 20 == 0)
-                        ROS_INFO("%s just pass RFID %d.",robots_[i]->GetName().c_str(),j + 1);
+                        RCLCPP_INFO(this->get_logger(),"%s just pass RFID %d.",robots_[i]->GetName().c_str(),j + 1);
                 SendJudgeSysRequest(robots_[i]->GetName(),rm_common::JudgeSysCommand::RFID_F1 + j);
                     //bullets_.emplace_back(new Bullet("robot",RFID_F_x[j],RFID_F_y[j],0,5));
             }
@@ -493,21 +493,20 @@ void RobotPhysics::ShootSequence()
     static int divider = 0;
     if(divider<8)
     {
-    divider ++;
-    return;
+        divider ++;
+        return;
     }
     divider = 0;
     if(need_shooting[0])
-    RobotShoot("robot_0");
+        RobotShoot("robot_0");
     if(need_shooting[1])
-    RobotShoot("robot_1");
+        RobotShoot("robot_1");
     if(need_shooting[2])
-    RobotShoot("robot_2");
+        RobotShoot("robot_2");
     if(need_shooting[3])
-    RobotShoot("robot_3");
+        RobotShoot("robot_3");
     for(int i =0;i<4;i++)
-    need_shooting[i] = false;
-
+        need_shooting[i] = false;
 }
 }
 
@@ -515,17 +514,21 @@ void RobotPhysics::ShootSequence()
 
 void ROS_Spin()
 {
-ros::spin();
+    rclcpp::spin(std::make_shared<rmMultistage::RobotPhysics>());
 }
 
-
 int main(int argc, char** argv){
-// 创建 NodeOptions 对象
-rclcpp::NodeOptions options;
+    // Initialize the ROS 2 system
+    rclcpp::init(argc, argv);
 
-// 使用 NodeOptions 对象创建 RobotPhysics 对象
-rmMultistage::RobotPhysics robotPhysics(options);
+    // Create NodeOptions object
+    rclcpp::NodeOptions options;
 
+    // Use NodeOptions object to create RobotPhysics object
+    auto robotPhysics = std::make_shared<rmMultistage::RobotPhysics>(options);
+
+    // Create a thread to spin the ROS 2 node
+    std::thread spin_thread(ROS_Spin);
 int ms = 0;
 int ms_last = 0;
 struct timeval tv;
@@ -535,15 +538,15 @@ while (rclcpp::ok()) {
     gettimeofday(&tv, &tz);
     ms_last = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 
-    robotPhysics.GimbalsMove();
-    robotPhysics.PublishGimbalYaw();
-    robotPhysics.LetBulletsFly(50);
-    robotPhysics.PublishBulletsInfo();
-    robotPhysics.BulletJudge();
-    robotPhysics.ArmorHitDetect();
-    robotPhysics.RFID_detect();
-    robotPhysics.PublishSimuDecisionInfo();
-    robotPhysics.ShootSequence();
+    robotPhysics->GimbalsMove();
+    robotPhysics->PublishGimbalYaw();
+    robotPhysics->LetBulletsFly(50);
+    robotPhysics->PublishBulletsInfo();
+    robotPhysics->BulletJudge();
+    robotPhysics->ArmorHitDetect();
+    robotPhysics->RFID_detect();
+    robotPhysics->PublishSimuDecisionInfo();
+    robotPhysics->ShootSequence();
 
     gettimeofday(&tv, &tz);
     ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;

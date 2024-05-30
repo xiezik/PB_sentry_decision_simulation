@@ -4,19 +4,15 @@
 
 #include <functional>
 #include <memory>
-#include <nav_msgs/srv/detail/get_map__struct.hpp>
 #include <rclcpp/client.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
 #include <rclcpp/service.hpp>
-#include <rm_decision_interfaces/msg/detail/bullets_info__struct.hpp>
-#include <rm_decision_interfaces/msg/detail/judge_sys_shoot_hit__struct.hpp>
-#include <rm_decision_interfaces/srv/detail/shoot_cmd__struct.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include "../../rm_common/include/error_code.hpp"
 #include "../../rm_common/include/command_code.hpp"
-#include "robot_tf.hpp"
 #include "bullet.hpp"
+#include "robot_tf.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include "nav_msgs/msg/occupancy_grid.hpp"

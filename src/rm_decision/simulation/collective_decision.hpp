@@ -1,19 +1,19 @@
 #ifndef COLLECTIVE_DECISION_H
 #define COLLECTIVE_DECISION_H
 
-#include "ros/ros.h"
-#include "hero_msgs/RobotPosition.h"
-#include "hero_msgs/BattlePosition.h"
-#include "nav_msgs/OccupancyGrid.h"
-#include <nav_msgs/GetMap.h>
-#include "std_msgs/Float64.h"
-#include "geometry_msgs/PoseStamped.h"
-#include "hero_msgs/BasicExecutor.h"
-#include "hero_msgs/RobotStatus.h"
-#include "hero_msgs/RobotHeat.h"
-#include "hero_msgs/Buffinfo.h"
-#include "hero_msgs/GameStatus.h"
-#include "costmap/costmap_interface.h"
+#include <rclcpp/rclcpp.hpp>
+#include "rm_decision_interfaces/msg/robot_position.hpp"
+#include "rm_decision_interfaces/msg/battle_position.hpp"
+#include "nav_msgs/msg/occupancy_grid.hpp"
+#include <nav_msgs/srv/get_map.hpp>
+#include "std_msgs/msg/float64.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "rm_decision_interfaces/srv/basic_executor.hpp"
+#include "rm_decision_interfaces/msg/basic_executor_status.hpp"
+#include "rm_decision_interfaces/msg/robot_status.hpp"
+#include "rm_decision_interfaces/msg/buffinfo.hpp"
+#include "rm_decision_interfaces/msg/game_status.hpp"
+#include "hero_costmap/costmap_interface.h"
 
 namespace hero_decision{
 
@@ -71,28 +71,26 @@ private:
    RobotTask *task;
    std::vector<RobotTask> candidate_tasks;
   };
-
-  ros::NodeHandle nh_;
+  rclcpp::Node::SharedPtr nh_;
   std::string color_;
   std::string friendly_name_[2];
   std::string enemy_name_[2];
-  hero_msgs::Buffinfo buffInfo_;
-  hero_msgs::GameStatus gameStatus_;
-  ros::Subscriber battle_position_sub_;
-  ros::ServiceClient static_map_srv_;
+  rm_decision_interfaces::msg::Buffinfo buffInfo_;
+  rm_decision_interfaces::msg::GameStatus gameStatus_;
+  rclcpp::Subscription<rm_decision_interfaces::msg::BattlePosition>::SharedPtr battle_position_sub_;
+  rclcpp::Client<nav_msgs::srv::GetMap>::SharedPtr static_map_srv_;
 
-  ros::Subscriber gameStatus_sub_;
-  ros::Subscriber buffInfo_sub_;
+  rclcpp::Subscription<rm_decision_interfaces::msg::GameStatus>::SharedPtr gameStatus_sub_;
+  rclcpp::Subscription<rm_decision_interfaces::msg::Buffinfo>::SharedPtr buffInfo_sub_;
 
-  ros::ServiceClient basic_executor_cient_[2];
+  rclcpp::Client<rm_decision_interfaces::srv::BasicExecutor>::SharedPtr basic_executor_cient_[2];
 
-  nav_msgs::OccupancyGrid map_;
-  hero_msgs::BattlePosition battle_position_;
+  nav_msgs::msg::OccupancyGrid map_;
+  rm_decision_interfaces::msg::BattlePosition battle_position_;
 
   CostmapPtr costmap_ptr_;
   //！ Transform pointer
   TfPtr tf_ptr_;
-
 
   RobotStatus robot_status[2];
   RobotStatus enemy_status[2];
@@ -107,16 +105,16 @@ private:
   double RFID_height;
   double RFID_width;
   bool GetStaticMap();
-  void GameStatusCallback(const hero_msgs::GameStatus::ConstPtr& msg);
-  void BuffInfoCallback(const hero_msgs::Buffinfo::ConstPtr& msg);
-  void BattlePositionCallback(const hero_msgs::BattlePosition::ConstPtr &msg);
+  void GameStatusCallback(const rm_decision_interfaces::msg::GameStatus::SharedPtr msg);
+  void BuffInfoCallback(const rm_decision_interfaces::msg::Buffinfo::SharedPtr msg);
+  void BattlePositionCallback(const rm_decision_interfaces::msg::BattlePosition::SharedPtr msg);
   void MoveToPosition(int robot_num, double x,double y);
   void AttackRobot(int robot_num,int enemy_num);
   void GoGetBuff(int robot_num,int buff_num);
   int GetBuffRFIDNum(BuffType buff_type);
   void Init();
-  void GetParam(ros::NodeHandle *nh);
-  hero_msgs::RobotPosition FindRobotPosition(std::string robot_name);
+  void GetParam(rclcpp::Node::SharedPtr nh);
+  rm_decision_interfaces::msg::RobotPosition FindRobotPosition(std::string robot_name);
   int FindClosestRobotToPosition(SideType specific_side,double x,double y);
   void FleeBehaviour(int robot_num);
   void RobotStatusUpdate();

@@ -4,17 +4,18 @@
 #include <rclcpp/rclcpp.hpp>
 #include "../../rm_common/include/error_code.hpp"
 #include "../../rm_common/include/math.hpp"
-#include <rm_decision_interfaces/srv/detail/gimbal_aim__struct.hpp>
+#include "bullet.hpp"
 #include <tf2/LinearMath/Quaternion.h>
 #include "geometry_msgs/msg/point_stamped.hpp"
-#include "bullet.hpp"
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include "rm_decision_interfaces/srv/gimbal_aim.hpp"
 #include "rm_decision_interfaces/msg/robot_status.hpp"
 
 namespace rmMultistage {
 
-using rm_common::Point2D;
-using rm_common::Polygon2D;
+using Point2D=rm_common::Point2D;
+using Polygon2D=rm_common::Polygon2D;
 
 #define RobotWidth 0.5
 #define RobotLength 0.6
@@ -54,7 +55,7 @@ class RobotTF: public rclcpp::Node
         float gimbal_yaw_absolute_;
         rm_common::ErrorInfo Init(std::string robot_name);
         
-        bool SetGimbalEncoderYaw(double yaw_set);
+        void SetGimbalEncoderYaw(double yaw_set);
         
         void RobotStatusCallback(const rm_decision_interfaces::msg::RobotStatus::ConstSharedPtr& msg);
         

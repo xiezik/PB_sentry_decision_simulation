@@ -25,13 +25,12 @@ ament_auto_find_build_dependencies()
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
   ${DecisionProtoSrc}
-  example_behavior/escape_behavior.cpp
-  example_behavior/back_boot_area_behavior.cpp
-  example_behavior/chase_behavior.cpp
-  example_behavior/patrol_behavior.cpp
-  example_behavior/search_behavior.cpp
-  behavior_test.cpp
   executor/chassis_executor.cpp
+  executor/gimbal_executor.cpp
+  executor/point_navigation.cpp
+  simulation/basic_executor.cpp
+  simulation/collective_decision.cpp
+  behavior_test.cpp
 )
 
 rclcpp_components_register_node(${PROJECT_NAME}

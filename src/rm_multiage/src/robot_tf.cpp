@@ -1,26 +1,25 @@
 #include "robot_tf.hpp"
 #include <rclcpp/clock.hpp>
-#include <rm_decision_interfaces/srv/detail/gimbal_aim__struct.hpp>
+#include <rclcpp/time.hpp>
 #include <rm_decision_interfaces/srv/gimbal_aim.hpp>
 #include <tf2/transform_datatypes.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 
 namespace rmMultistage {
 
-    using rm_common::ErrorCode;
-    using rm_common::ErrorInfo;
-    using rm_common::Point2D;
-    using rm_common::Polygon2D;
-    using rm_common::LineSegment2D;
+    using ErrorCode=rm_common::ErrorCode;
+    using ErrorInfo=rm_common::ErrorInfo;
+    using Point2D=rm_common::Point2D;
+    using LineSegment2D=rm_common::LineSegment2D;
 
     RobotTF::RobotTF(std::string robot_name):Node("robot_tf"),
       gimbal_yaw_(0),
       gimbal_yaw_set_(0)
     {
         if (Init(robot_name).IsOK()) {
-         ROS_INFO("[robot_physicis]robot %s added.",robot_name.c_str());
+         RCLCPP_INFO(this->get_logger(),"[robot_physicis]robot %s added.",robot_name.c_str());
        } else {
-         ROS_ERROR("[robot_physicis]fail to add robot: %s.",robot_name.c_str());
+         RCLCPP_ERROR(this->get_logger(),"[robot_physicis]fail to add robot: %s.",robot_name.c_str());
        }
     }
 
@@ -74,7 +73,7 @@ namespace rmMultistage {
       SetGimbalEncoderYaw(rm_common::GetAngleInRange(set_yaw));
     }
 
-    bool RobotTF::SetGimbalEncoderYaw(double yaw_set)
+    void RobotTF::SetGimbalEncoderYaw(double yaw_set)
     {
       if(yaw_set>rm_common::PI*0.5)
         yaw_set = rm_common::PI*0.5;
@@ -110,11 +109,11 @@ namespace rmMultistage {
 
     void RobotTF::PublishArmorTF()
 {
-    geometry_msgs::TransformStamped transformStamped;
+    geometry_msgs::msg::TransformStamped transformStamped;
     tf2::Quaternion q;
 
     transformStamped.header.frame_id = robot_name_ + "/base_pose_ground_truth";
-    transformStamped.header.stamp = ros::Time::now();
+    transformStamped.header.stamp = now();
 
     // armor_front
     transformStamped.child_frame_id = robot_name_ + "/armor_front";
@@ -229,7 +228,7 @@ namespace rmMultistage {
         double minDistance = 100;
         int index = 0;
 
-        for(i=0;i<pointsIntersect.size();i++)
+        for(size_t i=0;i<pointsIntersect.size();i++)
         {
             if(minDistance > rm_common::PointDistance(bullet.GetPositionLast(),pointsIntersect[i]))
             {

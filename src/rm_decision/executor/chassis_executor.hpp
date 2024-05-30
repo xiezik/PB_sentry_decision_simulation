@@ -2,11 +2,13 @@
 #define HERO_DECISION_CHASSIS_EXECUTOR_H
 #include <geometry_msgs/msg/detail/twist__struct.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/client.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <rclcpp/client.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
 #include <rclcpp/service.hpp>
+#include <rm_decision_interfaces/action/detail/global_planner__struct.hpp>
 
 #include "rm_decision_interfaces/action/global_planner.hpp"
 #include "rm_decision_interfaces/action/local_planner.hpp"
@@ -19,11 +21,14 @@ namespace hero_decision{
 /***
  * @brief Chassis Executor to execute different abstracted task for chassis module
  */
-class ChassisExecutor{
+class ChassisExecutor : public rclcpp::Node{
 
-  typedef actionlib::SimpleActionClient<rm_decision_interfaces::action::GlobalPlanner> GlobalActionClient;
-  typedef actionlib::SimpleActionClient<rm_decision_interfaces::action::LocalPlanner> LocalActionClient;
+ 
  public:
+   using GlobalPlanner = rm_decision_interfaces::action::GlobalPlanner;
+  using LocalPlanner = rm_decision_interfaces::action::LocalPlanner;
+  using GoalHandleGlobalPlanner = rclcpp_action::ClientGoalHandle<GlobalPlanner>;
+  using GoalHandleLocalPlanner = rclcpp_action::ClientGoalHandle<LocalPlanner>;
   /**
    * @brief Chassis execution mode for different tasks
    */
@@ -36,8 +41,7 @@ class ChassisExecutor{
   /**
    * @brief Constructor of ChassisExecutor
    */
-  ChassisExecutor();
-  ~ChassisExecutor() = default;
+  ChassisExecutor(const rclcpp::NodeOptions & options);
   /**
    * @brief Execute the goal-targeted task using global and local planner with actionlib
    * @param goal Given taget goal
@@ -63,25 +67,35 @@ class ChassisExecutor{
    */
   void Cancel();
 
+
+
  private:
   /***
    * @brief Global planner actionlib feedback callback function to send the global planner path to local planner
    * @param global_planner_feedback  Global planner actionlib feedback, which mainly consists of global planner path output
    */
-  void GlobalPlannerFeedbackCallback(const rm_decision_interfaces::action::GlobalPlanner::Feedback::ConstSharedPtr& global_planner_feedback);
+  void GlobalPlannerFeedbackCallback(const GoalHandleGlobalPlanner::SharedPtr, const std::shared_ptr<const GlobalPlanner::Feedback>& global_planner_feedback);
+  void GlobalPlannerGoalResponseCallback(const GoalHandleGlobalPlanner::SharedPtr& goal_handle);
+  void GlobalPlannerResultCallback(const GoalHandleGlobalPlanner::WrappedResult & result);
   //! execution mode of the executor
   ExcutionMode execution_mode_;
   //! execution state of the executor (same with behavior state)
   BehaviorState execution_state_;
 
   //! global planner actionlib client
-  actionlib::SimpleActionClient<rm_decision_interfaces::action::GlobalPlanner> global_planner_client_;
+  // actionlib::SimpleActionClient<rm_decision_interfaces::action::GlobalPlanner> global_planner_client_;
   //! local planner actionlib client
-  actionlib::SimpleActionClient<rm_decision_interfaces::action::LocalPlanner> local_planner_client_;
+  // actionlib::SimpleActionClient<rm_decision_interfaces::action::LocalPlanner> local_planner_client_;
+
+  //global planner action client
+  rclcpp_action::Client<GlobalPlanner>::SharedPtr global_planner_action_client_;
+  // typedef actionlib::SimpleActionClient<rm_decision_interfaces::action::LocalPlanner> LocalActionClient;
+  rclcpp_action::Client<LocalPlanner>::SharedPtr local_planner_action_client_;
   //! global planner actionlib goal
-  rm_decision_interfaces::action::GlobalPlanner::Goal global_planner_goal_;
+  GlobalPlanner::Goal global_planner_goal_;
   //! local planner actionlib goal
-  rm_decision_interfaces::action::LocalPlanner::Goal local_planner_goal_;
+  LocalPlanner::Goal local_planner_goal_;
+
 
   //! velocity control publisher in ROS2
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;

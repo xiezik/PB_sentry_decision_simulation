@@ -61,7 +61,7 @@ inline bool ConvexVerify(std::vector<rm_common::Point2D> &points) {
 
   //make sure the point range is Anti-Clock
   double area = 0;
-  for (int i = 1; i < num_points; ++i) {
+  for (size_t i = 1; i < num_points; ++i) {
     area += Cross2D(points[0], points[i - 1], points[i]);
   }
   if (area < 0) {
@@ -69,7 +69,7 @@ inline bool ConvexVerify(std::vector<rm_common::Point2D> &points) {
   }
 
 //use cross judge convex
-  for (int i = 0; i < num_points; ++i) {
+  for (size_t i = 0; i < num_points; ++i) {
 
     auto prev = i == 0 ? (num_points - 1) : (i - 1);
     auto next = i >= (num_points - 1) ? 0 : (i + 1);
