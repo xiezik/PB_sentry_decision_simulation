@@ -90,8 +90,6 @@ void PointNavigation::GlobalPlannerFeedbackCallback(const GoalHandleGlobalPlanne
 
 }
 
-
-
 }
 RCLCPP_COMPONENTS_REGISTER_NODE(hero_decision::PointNavigation)
 // int main(int argc, char **argv)

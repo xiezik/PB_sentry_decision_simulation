@@ -1,5 +1,7 @@
 #include "basic_executor.hpp"
 #include <chrono>
+#include <rm_decision_interfaces/msg/detail/battle_position__struct.hpp>
+#include <std_msgs/msg/detail/float64__struct.hpp>
 #include <sys/time.h>
 #include <thread>
 #include "hero_map/hero_map.h"
@@ -11,10 +13,10 @@ namespace hero_decision {
 
 using namespace hero_decision;
 
-BasicExecutor::BasicExecutor()
+BasicExecutor::BasicExecutor(const rclcpp::NodeOptions & options) : Node("basic_executor", options)
 {
   Init();
-  RCLCPP_INFO(this->get_logger(),"[basic_executor]%s init!",my_name_.c_str());
+  RCLCPP_INFO(rclcpp::get_logger("BasicExecutor"),"[basic_executor]%s init!",my_name_.c_str());
 }
 
 void BasicExecutor::Init()
@@ -22,8 +24,8 @@ void BasicExecutor::Init()
   set_yaw = 0;
   yaw_received_ = false;
   yaw_control_received_ = false;
-  if(nh_.getNamespace().c_str()!="/"&&nh_.getNamespace().size()>5)
-      my_name_ = nh_.getNamespace().substr(2);
+  if(this->get_namespace().c_str()!="/"&&this->get_namespace().size()>5)
+      my_name_ = this->get_namespace().substr(2);
   else
       my_name_ = "robot_0";
   state_ = BasicExecutorState::IDLE;
@@ -31,16 +33,29 @@ void BasicExecutor::Init()
   move_x = 0;
   move_y = 0;
   saying = "";
-  ros::Duration(2.0).sleep();
-  battle_position_sub_ = nh_.subscribe<hero_msgs::BattlePosition>("/simu_decision_info/battle_position",100,&BasicExecutor::BattlePositionCallback,this);
-  yaw_set_sub_ = nh_.subscribe<std_msgs::Float64>("yaw_set",100,&BasicExecutor::YawSetCallback,this);
-  yaw_speed_pub_ = nh_.advertise<std_msgs::Float64>("cmd_yaw_speed", 5);
-  goalPoint_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("move_base_simple/goal", 5);
-  static_map_srv_ = nh_.serviceClient<nav_msgs::GetMap>("/static_map");
-  shoot_client_ = nh_.serviceClient<hero_msgs::ShootCmd>("/shoot_server");
-  gimbal_aim_client_ =  nh_.serviceClient<hero_msgs::GimbalAim>("gimbal_aim_server");
-  basic_executor_server_ = nh_.advertiseService("basic_executor_server",&BasicExecutor::BasicExecutor_handle_function,this);
-  basic_executor_status_pub_ = nh_.advertise<hero_msgs::BasicExecutorStatus>("basic_executor_status",5);
+  rclcpp::sleep_for(std::chrono::seconds(2));
+  // battle_position_sub_ = this->create_subscription<rm_decision_interfaces::msg::BtlePosition>("/simu_decision_info/battle_position",100,&BasicExecutor::BattlePositionCallback,this);
+  
+  battle_position_sub_ = this->create_subscription<rm_decision_interfaces::msg::BattlePosition>("/simu_decision_info/battle_position", 
+    rclcpp::SensorDataQoS(), 
+    std::bind(&BasicExecutor::BattlePositionCallback, this, std::placeholders::_1));
+  yaw_set_sub_ = this->create_subscription<std_msgs::msg::Float64>("yaw_set", 
+    rclcpp::SensorDataQoS(), 
+    std::bind(&BasicExecutor::YawSetCallback, this, std::placeholders::_1));
+
+  yaw_pub_ = this->create_publisher<std_msgs::msg::Float64>("cmd_yaw_speed", 5);
+  goalPoint_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("move_base_simple/goal", 5);
+  static_map_srv_ = this->create_client<nav_msgs::srv::GetMap>("/static_map");
+  shoot_client_ = this->create_client<rm_decision_interfaces::srv::ShootCmd>("/shoot_server");
+  gimbal_aim_client_ =  this->create_client<rm_decision_interfaces::srv::GimbalAim>("gimbal_aim_server");
+  basic_executor_server_ = this->create_service<rm_decision_interfaces::srv::BasicExecutor>(
+    "shoot_server",
+    [this](rm_decision_interfaces::srv::BasicExecutor_Request::SharedPtr req,
+           rm_decision_interfaces::srv::BasicExecutor_Response::SharedPtr res) {
+        return this->BasicExecutor::BasicExecutor_handle_function(req, res);
+    });
+
+  basic_executor_status_pub_ = this->create_publisher<rm_decision_interfaces::msg::BasicExecutorStatus>("basic_executor_status",5);
   GetStaticMap();
 
 
@@ -118,7 +133,8 @@ void BasicExecutor::FSM_handler()
 
 
 
-bool BasicExecutor::BasicExecutor_handle_function(hero_msgs::BasicExecutor::Request &req, hero_msgs::BasicExecutor::Response &res)
+bool BasicExecutor::BasicExecutor_handle_function(rm_decision_interfaces::srv::BasicExecutor::Request &req,
+  rm_decision_interfaces::srv::BasicExecutor::Response &res)
 {
   bool success = true;
   switch(req.command)
@@ -147,7 +163,7 @@ bool BasicExecutor::BasicExecutor_handle_function(hero_msgs::BasicExecutor::Requ
   }
   if(target_enemy_ == my_name_)
   {
-    ROS_ERROR("%s can't engage itself!",my_name_);
+    RCLCPP_ERROR(this->get_logger(),"%s can't engage itself!",my_name_);
     res.error_code = res.INVALID_TARGET;
     success = false;
   }
@@ -156,7 +172,7 @@ bool BasicExecutor::BasicExecutor_handle_function(hero_msgs::BasicExecutor::Requ
   saying = req.saying;
   return success;
 }
-void BasicExecutor::YawSetCallback(const std_msgs::Float64::ConstPtr &msg)
+void BasicExecutor::YawSetCallback(const std_msgs::msg::Float64::ConstSharedPtr &msg)
 {
   set_yaw = msg->data;
   yaw_control_received_ = true;

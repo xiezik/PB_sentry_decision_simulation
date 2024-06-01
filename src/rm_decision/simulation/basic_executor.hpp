@@ -11,10 +11,6 @@
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/service.hpp>
 #include <rclcpp/subscription.hpp>
-#include <rm_decision_interfaces/msg/detail/battle_position__struct.hpp>
-#include <rm_decision_interfaces/srv/detail/basic_executor__struct.hpp>
-#include <rm_decision_interfaces/srv/detail/shoot_cmd__struct.hpp>
-#include <std_msgs/msg/detail/float64__struct.hpp>
 #include "rm_decision_interfaces/srv/shoot_cmd.hpp"
 #include "rm_decision_interfaces/srv/gimbal_aim.hpp"
 #include "std_msgs/msg/float64.hpp"
@@ -35,10 +31,10 @@ enum class BasicExecutorState {
   IDLE,
 };
 
-class BasicExecutor
+class BasicExecutor : public rclcpp::Node
 {
 public:
-  BasicExecutor();
+  BasicExecutor(const rclcpp::NodeOptions & options);
   int CanShootRobot(std::string robot_name);
   bool AimRobot(std::string robot_name);
   bool EngageRobot(std::string robot_name);
@@ -80,7 +76,7 @@ private:
 
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr goalPoint_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr yaw_pub_;
-  rclcpp::Publisher<rm_decision_interfaces::msg::BasicExecutorStatus>::SharedPtr pitch_pub_;
+  rclcpp::Publisher<rm_decision_interfaces::msg::BasicExecutorStatus>::SharedPtr basic_executor_status_pub_;
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr yaw_set_sub_;
   rclcpp::Service<rm_decision_interfaces::srv::BasicExecutor>::SharedPtr basic_executor_server_;
   rm_decision_interfaces::msg::RobotPosition FindRobotPosition(std::string robot_name);
