@@ -6,7 +6,7 @@
 #include "../blackboard/blackboard.hpp"
 #include "../executor/chassis_executor.hpp"
 #include "../behavior_tree/behavior_state.h"
-#include "../proto/decision.pb.hpp"
+#include "../proto/decision.pb.h"
 
 #include "line_iterator.hpp"
 #include <rclcpp/logger.hpp>

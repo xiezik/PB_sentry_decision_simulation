@@ -6,9 +6,10 @@
 #include "../blackboard/blackboard.hpp"
 #include "../executor/chassis_executor.hpp"
 #include "../behavior_tree/behavior_state.h"
-#include "../proto/decision.pb.hpp"
+#include "../proto/decision.pb.h"
 
 #include "line_iterator.hpp"
+#include <rclcpp/logger.hpp>
 
 namespace hero_decision {
 class BackBootAreaBehavior {
@@ -30,7 +31,7 @@ class BackBootAreaBehavior {
     boot_position_.pose.position.z = 0;
 
     if (!LoadParam(proto_file_path)) {
-      ROS_ERROR("%s can't open file", __FUNCTION__);
+      RCLCPP_ERROR(rclcpp::get_logger("BackBootAreaBehavior"),"%s can't open file", __FUNCTION__);
     }
 
   }
@@ -69,7 +70,7 @@ class BackBootAreaBehavior {
 
   bool LoadParam(const std::string &proto_file_path) {
     hero_decision::DecisionConfig decision_config;
-    if (!hero_common::ReadProtoFromTextFile(proto_file_path, &decision_config)) {
+    if (!rm_common::ReadProtoFromTextFile(proto_file_path, &decision_config)) {
       return false;
     }
 

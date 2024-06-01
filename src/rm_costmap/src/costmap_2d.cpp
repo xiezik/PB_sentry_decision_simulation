@@ -50,7 +50,7 @@
  *
  *********************************************************************/
 
-#include "costmap_2d.h"
+#include "costmap_2d.hpp"
 
 #include <ros/package.h>
 #include <ros/ros.h>

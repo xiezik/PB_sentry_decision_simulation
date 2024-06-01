@@ -1,4 +1,4 @@
-#include "tactic_layer.h"
+#include "tactic_layer.hpp"
 #include "hero_map/hero_map.h"
 #include "hero_math/math.h"
 

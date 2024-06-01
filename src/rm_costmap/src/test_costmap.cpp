@@ -53,11 +53,12 @@
 #include <thread>
 #include <csignal>
 
-#include "costmap_interface.h"
+#include "costmap_interface.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 void SignalHandler(int signal){
-  if(ros::isInitialized() && ros::isStarted() && ros::ok() && !ros::isShuttingDown()){
-    ros::shutdown();
+  if(rclcpp::ok()){
+    rclcpp::shutdown();
   }
 }
 
@@ -65,17 +66,19 @@ int main(int argc, char** argv) {
 
   signal(SIGINT, SignalHandler);
   signal(SIGTERM,SignalHandler);
-  ros::init(argc, argv, "test_costmap", ros::init_options::NoSigintHandler);
-  tf::TransformListener tf(ros::Duration(10));
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<rclcpp::Node>("test_costmap");
 
-  std::string local_map = ros::package::getPath("hero_costmap") + \
+  tf2_ros::Buffer tf_buffer(node->get_clock());
+  tf2_ros::TransformListener tf_listener(tf_buffer);
+
+  std::string local_map = ament_index_cpp::get_package_share_directory("hero_costmap") + \
       "/config/costmap_parameter_config_for_local_plan.prototxt";
   hero_costmap::CostmapInterface costmap_interface("map",
-                                                      tf,
+                                                      tf_buffer,
                                                       local_map.c_str());
 
-  ros::AsyncSpinner async_spinner(1);
-  async_spinner.start();
-  ros::waitForShutdown();
+  rclcpp::spin(node);
+  rclcpp::shutdown();
   return 0;
 }

@@ -10,7 +10,7 @@ namespace hero_decision{
 /***
  * @brief Gimbal Executor to execute different abstracted task for gimbal module
  */
-class GimbalExecutor{
+class GimbalExecutor : public rclcpp::Node{
  public:
   /**
    * @brief Gimbal execution mode for different tasks
@@ -23,8 +23,7 @@ class GimbalExecutor{
   /**
    * @brief Constructor of GimbalExecutor
    */
-  GimbalExecutor();
-  ~GimbalExecutor() = default;
+  GimbalExecutor(const rclcpp::NodeOptions & options);
   /***
    * @brief Execute the gimbal angle task with publisher
    * @param gimbal_angle Given gimbal angle

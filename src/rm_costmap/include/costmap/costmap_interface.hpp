@@ -56,18 +56,18 @@
 #include <Eigen/StdVector>
 #include <thread>
 
-#include <geometry_msgs/PolygonStamped.h>
-#include <geometry_msgs/PoseStamped.h>
-#include "map_common.h"
-#include "footprint.h"
-#include "layer.h"
-#include "layered_costmap.h"
-#include "costmap_layer.h"
-#include "static_layer.h"
-#include "obstacle_layer.h"
-#include "inflation_layer.h"
-#include "debuff_layer.h"
-#include "tactic_layer.h"
+#include <geometry_msgs/msg/polygon_stamped.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include "map_common.hpp"
+#include "footprint.hpp"
+#include "layer.hpp"
+#include "layered_costmap.hpp"
+#include "costmap_layer.hpp"
+#include "static_layer.hpp"
+#include "obstacle_layer.hpp"
+#include "inflation_layer.hpp"
+#include "debuff_layer.hpp"
+#include "tactic_layer.hpp"
 
 namespace hero_costmap {
 

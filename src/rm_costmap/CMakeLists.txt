@@ -25,16 +25,16 @@ ament_auto_find_build_dependencies()
 ###########
 
 # proto file
-file(GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.proto")
-rrts_protobuf_generate_cpp(${CMAKE_CURRENT_SOURCE_DIR}/proto
-  CostmapProtoSrcs
-  CostmapProtoHeaders
-  ${ProtoFiles}
-  )
+# file(GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.proto")
+# rrts_protobuf_generate_cpp(${CMAKE_CURRENT_SOURCE_DIR}/proto
+#   CostmapProtoSrcs
+#   CostmapProtoHeaders
+#   ${ProtoFiles}
+#   )
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
   ${DecisionProtoSrc}
-  
+  src/test_costmap.cpp
 )
 
 rclcpp_components_register_node(${PROJECT_NAME}
