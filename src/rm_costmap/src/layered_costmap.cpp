@@ -49,7 +49,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  *********************************************************************/
-#include "layered_costmap.h"
+#include "rm_costmap/layered_costmap.hpp"
 
 namespace hero_costmap {
 

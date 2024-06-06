@@ -13,7 +13,6 @@
 #include "rm_decision_interfaces/msg/robot_status.hpp"
 #include "rm_decision_interfaces/msg/buffinfo.hpp"
 #include "rm_decision_interfaces/msg/game_status.hpp"
-#include "hero_costmap/costmap_interface.h"
 
 namespace hero_decision{
 

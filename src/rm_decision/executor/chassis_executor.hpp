@@ -8,7 +8,6 @@
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
 #include <rclcpp/service.hpp>
-#include <rm_decision_interfaces/action/detail/global_planner__struct.hpp>
 
 #include "rm_decision_interfaces/action/global_planner.hpp"
 #include "rm_decision_interfaces/action/local_planner.hpp"

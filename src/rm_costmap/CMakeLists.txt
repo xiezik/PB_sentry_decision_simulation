@@ -2,16 +2,20 @@
 cmake_minimum_required(VERSION 3.10)
 project(rm_costmap)
 
+
 ## Use C++14
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 
 ## By adding -Wall and -Werror, the compiler does not ignore warnings anymore,
 ## enforcing cleaner code.
 add_definitions(-Wall -Werror)
 
+
 ## Export compile commands for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 
 #######################
 ## Find dependencies ##
@@ -19,30 +23,42 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
+find_package(Protobuf REQUIRED)
+include_directories(${Protobuf_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 ###########
 ## Build ##
 ###########
 
-# proto file
-# file(GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.proto")
-# rrts_protobuf_generate_cpp(${CMAKE_CURRENT_SOURCE_DIR}/proto
-#   CostmapProtoSrcs
-#   CostmapProtoHeaders
-#   ${ProtoFiles}
-#   )
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS
+  proto/costmap_parameter_setting.proto
+  proto/inflation_layer_setting.proto
+  proto/obstacle_layer_setting.proto
+  proto/static_layer_setting.proto
+)
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
-  ${DecisionProtoSrc}
+  ${PROTO_SRCS}
+  ${PROTO_HDRS}
   src/test_costmap.cpp
+  src/costmap_2d.cpp
+  src/costmap_interface.cpp
+  src/costmap_layer.cpp
+  src/costmap_math.cpp
+  src/debuff_layer.cpp
+  src/footprint.cpp
+  src/inflation_layer.cpp
+  src/layered_costmap.cpp
+  src/observation_buffer.cpp
+  src/obstacle_layer.cpp
+  src/static_layer.cpp
+  src/tactic_layer.cpp
+  src/layer.cpp
 )
 
-rclcpp_components_register_node(${PROJECT_NAME}
-  PLUGIN JudgesysControl::JudgesysControl
-  EXECUTABLE ${PROJECT_NAME}_node
-)
 
-#############
+##############
 ## Testing ##
 #############
 
@@ -54,6 +70,7 @@ if(BUILD_TESTING)
   )
   ament_lint_auto_find_test_dependencies()
 endif()
+
 
 #############
 ## Install ##

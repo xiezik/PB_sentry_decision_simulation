@@ -1,11 +1,10 @@
-#include "collective_decision.h"
+#include "collective_decision.hpp"
 #include <chrono>
+#include <tf2_ros/transform_listener.h>
 #include <sys/time.h>
 #include <thread>
-#include "hero_math/math.h"
-#include "tf/tf.h"
-#include <ros/package.h>
-#include "hero_map/hero_map.h"
+#include "../../rm_common/include/math.hpp"
+#include "../../rm_common/include/rm_map.hpp"
 
 #define LOGI ROS_INFO
 namespace hero_decision{
@@ -42,17 +41,17 @@ void Collective_decision::Init()
   robot_status[1].name = friendly_name_[1];
   enemy_status[0].name = enemy_name_[0];
   enemy_status[1].name = enemy_name_[1];
-  gameStatus_sub_ = nh_.subscribe<hero_msgs::GameStatus>("/judgeSysInfo/game_state", 100,&Collective_decision::GameStatusCallback,this);
-  buffInfo_sub_ = nh_.subscribe<hero_msgs::Buffinfo>("/judgeSysInfo/buff_info", 100,&Collective_decision::BuffInfoCallback,this);
+  gameStatus_sub_ = nh_.subscribe<rm_decision_interfaces::msg::GameStatus>("/judgeSysInfo/game_state", 100,&Collective_decision::GameStatusCallback,this);
+  buffInfo_sub_ = nh_.subscribe<rm_decision_interfaces::msg::Buffinfo>("/judgeSysInfo/buff_info", 100,&Collective_decision::BuffInfoCallback,this);
   basic_executor_cient_[0] = nh_.serviceClient<hero_msgs::BasicExecutor>("/"+friendly_name_[0]+"/basic_executor_server");
   basic_executor_cient_[1] = nh_.serviceClient<hero_msgs::BasicExecutor>("/"+friendly_name_[1]+"/basic_executor_server");
-  static_map_srv_ = nh_.serviceClient<nav_msgs::GetMap>("/static_map");
-  battle_position_sub_ = nh_.subscribe<hero_msgs::BattlePosition>("/simu_decision_info/battle_position",100,&Collective_decision::BattlePositionCallback,this);
+  static_map_srv_ = nh_.serviceClient<nav_msgs::srv::GetMap>("/static_map");
+  battle_position_sub_ = nh_.subscribe<rm_decision_interfaces::msg::BattlePosition>("/simu_decision_info/battle_position",100,&Collective_decision::BattlePositionCallback,this);
   GetParam(&nh_);
   GetStaticMap();
 
   // Create tf listener
-  tf_ptr_ = std::make_shared<tf::TransformListener>(ros::Duration(10));
+  tf_ptr_ = std::make_shared<tf2::TransformListener>(ros::Duration(10));
 
   // Create costmap
   std::string map_path = ros::package::getPath("hero_costmap") + \

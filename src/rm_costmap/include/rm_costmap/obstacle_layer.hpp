@@ -54,67 +54,69 @@
 
 #include <chrono>
 
-#include <nav_msgs/OccupancyGrid.h>
-#include <sensor_msgs/LaserScan.h>
-#include <laser_geometry/laser_geometry.h>
-#include <sensor_msgs/PointCloud.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <sensor_msgs/point_cloud_conversion.h>
-#include <tf/message_filter.h>
+#include <nav_msgs/msg/occupancy_grid.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <laser_geometry/laser_geometry.hpp>
+#include <sensor_msgs/msg/point_cloud.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+// #include <sensor_msgs/msg/point_cloud_conversion.h>
+#include <tf2_ros/message_filter.h>
 #include <message_filters/subscriber.h>
-#include "footprint.h"
-#include "map_common.h"
-#include "costmap_layer.h"
-#include "layered_costmap.h"
-#include "observation_buffer.h"
-#include "map_common.h"
+#include "footprint.hpp"
+#include "map_common.hpp"
+#include "costmap_layer.hpp"
+#include "layered_costmap.hpp"
+#include "observation_buffer.hpp"
+#include "map_common.hpp"
 
 namespace hero_costmap {
 
-class ObstacleLayer : public CostmapLayer {
- public:
-  ObstacleLayer() {
+class ObstacleLayer : public CostmapLayer
+{
+public:
+  ObstacleLayer()
+  {
     costmap_ = nullptr;
   }
 
   virtual ~ObstacleLayer() {}
-  virtual void OnInitialize();
-  virtual void Activate();
-  virtual void Deactivate();
-  virtual void Reset();
-  virtual void UpdateCosts(Costmap2D &master_grid, int min_i, int min_j, int max_i, int max_j);
-  virtual void UpdateBounds(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y,
-                            double *max_x, double *max_y) override;
-  void LaserScanCallback(const sensor_msgs::LaserScanConstPtr &message,
+  virtual void onInitialize();
+  virtual void activate();
+  virtual void deactivate();
+  virtual void reset();
+  virtual void updateCosts(Costmap2D &master_grid, int min_i, int min_j, int max_i, int max_j);
+  virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y,
+                            double *max_x, double *max_y);
+  void laserScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr message,
                          const std::shared_ptr<ObservationBuffer> &buffer);
-  void LaserScanValidInfoCallback(const sensor_msgs::LaserScanConstPtr &message,
+  void laserScanValidInfoCallback(const sensor_msgs::msg::LaserScan::SharedPtr message,
                                   const std::shared_ptr<ObservationBuffer> &buffer);
 
- protected:
-  bool GetMarkingObservations(std::vector<Observation> &marking_observations) const;
-  bool GetClearingObservations(std::vector<Observation> &clearing_observations) const;
-  virtual void RaytraceFreespace(const Observation &clearing_observation, double *min_x, double *min_y,
+protected:
+  bool getMarkingObservations(std::vector<Observation> &marking_observations) const;
+  bool getClearingObservations(std::vector<Observation> &clearing_observations) const;
+  virtual void raytraceFreespace(const Observation &clearing_observation, double *min_x, double *min_y,
                                  double *max_x, double *max_y);
-  void UpdateRaytraceBounds(double ox, double oy, double wx, double wy, double range, double *min_x, double *min_y,
+  void updateRaytraceBounds(double ox, double oy, double wx, double wy, double range, double *min_x, double *min_y,
                             double *max_x, double *max_y);
-  void UpdateFootprint(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y,
+  void updateFootprint(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y,
                        double *max_x, double *max_y);
-  bool footprint_clearing_enabled_, rolling_window_;
-  int combination_method_;
-  std::string global_frame_;
-  double max_obstacle_height_;
-  std::vector<geometry_msgs::Point> transformed_footprint_;
+  bool footprintClearingEnabled_, rollingWindow_;
+  int combinationMethod_;
+  std::string globalFrame_;
+  double maxObstacleHeight_;
+  std::vector<geometry_msgs::msg::Point> transformedFootprint_;
   laser_geometry::LaserProjection projector_;
 
-  std::vector<std::shared_ptr<message_filters::SubscriberBase> > observation_subscribers_;
-  std::vector<std::shared_ptr<tf::MessageFilterBase> > observation_notifiers_;
-  std::vector<std::shared_ptr<ObservationBuffer> > observation_buffers_;
-  std::vector<std::shared_ptr<ObservationBuffer> > marking_buffers_;
-  std::vector<std::shared_ptr<ObservationBuffer> > clearing_buffers_;
+  std::vector<std::shared_ptr<message_filters::SubscriberBase>> observationSubscribers_;
+  std::vector<std::shared_ptr<tf2_ros::MessageFilterBase>> observationNotifiers_;
+  std::vector<std::shared_ptr<ObservationBuffer>> observationBuffers_;
+  std::vector<std::shared_ptr<ObservationBuffer>> markingBuffers_;
+  std::vector<std::shared_ptr<ObservationBuffer>> clearingBuffers_;
 
-  std::vector<Observation> static_clearing_observations_, static_marking_observations_;
-  std::chrono::system_clock::time_point reset_time_;
-};
+  std::vector<Observation> staticClearingObservations_, staticMarkingObservations_;
+  std::chrono::system_clock::time_point resetTime_;
+};;
 
 } //namespace hero_costmap
 

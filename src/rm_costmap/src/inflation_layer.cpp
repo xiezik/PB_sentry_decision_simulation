@@ -51,9 +51,9 @@
  *********************************************************************/
 #include <algorithm>
 #include <mutex>
-#include "costmap_math.h"
-#include "footprint.h"
-#include "inflation_layer.h"
+#include "rm_costmap/costmap_math.hpp"
+#include "rm_costmap/footprint.hpp"
+#include "rm_costmap/inflation_layer.hpp"
 #include "inflation_layer_setting.pb.h"
 namespace hero_costmap {
 

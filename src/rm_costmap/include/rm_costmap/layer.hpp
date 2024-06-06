@@ -53,11 +53,10 @@
 #define HERO_COSTMAP_LAYER_H
 
 #include <string>
-#include <tf/tf.h>
-#include <tf/transform_listener.h>
+#include <tf2_ros/transform_listener.h>
 
-#include "costmap_2d.h"
-#include "layered_costmap.h"
+#include "costmap_2d.hpp"
+#include "layered_costmap.hpp"
 
 namespace hero_costmap {
 
@@ -75,7 +74,7 @@ class Layer {
  * @param name this layer name
  * @param tf a tf listener providing transforms
  */
-  void Initialize(CostmapLayers *parent, std::string name, tf::TransformListener *tf);
+  void Initialize(CostmapLayers *parent, std::string name, tf2_ros::TransformListener *tf);
 
 /**
  * @brief This is called by the LayeredCostmap to poll this plugin as to how
@@ -140,7 +139,7 @@ class Layer {
   /**
    * @brief Convenience function for layered_costmap_->GetFootprint().
    */
-  const std::vector<geometry_msgs::Point> &GetFootprint() const;
+  const std::vector<geometry_msgs::msg::Point> &GetFootprint() const;
 
   virtual void OnFootprintChanged() {}
 
@@ -153,10 +152,10 @@ class Layer {
   CostmapLayers *layered_costmap_;
   bool is_current_, is_enabled_, is_debug_;
   std::string name_;
-  tf::TransformListener *tf_;
+  tf2_ros::TransformListener *tf_;
 
  private:
-  std::vector<geometry_msgs::Point> footprint_spec_;
+  std::vector<geometry_msgs::msg::Point> footprint_spec_;
 };
 
 }  //namespace hero_costmap

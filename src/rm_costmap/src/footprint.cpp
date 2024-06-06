@@ -50,9 +50,9 @@
  *
  *********************************************************************/
 #include <boost/algorithm/string.hpp>
-#include <geometry_msgs/Point32.h>
-#include "costmap_math.h"
-#include "footprint.h"
+#include <geometry_msgs/msg/point32.hpp>
+#include "rm_costmap/costmap_math.hpp"
+#include "rm_costmap/footprint.hpp"
 
 namespace hero_costmap {
 

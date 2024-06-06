@@ -50,7 +50,7 @@
  *
  *********************************************************************/
 #include "static_layer_setting.pb.h"
-#include "static_layer.h"
+#include "rm_costmap/static_layer.hpp"
 
 namespace hero_costmap {
 

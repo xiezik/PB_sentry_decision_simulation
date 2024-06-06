@@ -50,7 +50,7 @@
  *
  *********************************************************************/
 #include "obstacle_layer_setting.pb.h"
-#include "obstacle_layer.h"
+#include "rm_costmap/obstacle_layer.hpp"
 
 namespace hero_costmap {
 

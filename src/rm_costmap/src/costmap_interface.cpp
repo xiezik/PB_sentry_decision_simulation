@@ -50,7 +50,7 @@
  *
  *********************************************************************/
 #include "costmap_parameter_setting.pb.h"
-#include "costmap_interface.h"
+#include "rm_costmap/costmap_interface.hpp"
 
 namespace hero_costmap {
 

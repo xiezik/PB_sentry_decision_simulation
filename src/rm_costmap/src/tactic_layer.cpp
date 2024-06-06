@@ -1,6 +1,7 @@
-#include "tactic_layer.hpp"
-#include "hero_map/hero_map.h"
-#include "hero_math/math.h"
+#include "rm_costmap/tactic_layer.hpp"
+#include "../../rm_common/include/math.hpp"
+#include "../../rm_common/include/rm_map.hpp"
+
 
 namespace hero_costmap {
 

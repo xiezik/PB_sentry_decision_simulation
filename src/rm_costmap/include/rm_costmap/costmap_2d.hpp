@@ -55,6 +55,8 @@
 #include <vector>
 #include <queue>
 #include <mutex>
+#include <climits> // Add this line to include the <climits> header file
+#include <cmath>   // Add this line to include the <cmath> header file
 #include <geometry_msgs/msg/point.hpp>
 
 namespace hero_costmap{
@@ -387,9 +389,11 @@ class Costmap2D {
    * @param  y1 The ending y coordinate
    * @param  max_length The maximum desired length of the segment.allowing to not go all the way to the endpoint
    */
+
+
   template<typename ActionType>
   inline void RaytraceLine(ActionType at, unsigned int x0, unsigned int y0, \
-                                                         unsigned int x1, unsigned int y1, \
+                                                   unsigned int x1, unsigned int y1, \
                            unsigned int max_length = UINT_MAX) {
     int dx = x1 - x0;
     int dy = y1 - y0;
@@ -398,7 +402,7 @@ class Costmap2D {
     int offset_dx = Sign(dx);
     int offset_dy = Sign(dy) * size_x_;
     unsigned int offset = y0 * size_x_ + x0;
-    double dist = hypot(dx, dy);
+    double dist = std::hypot(dx, dy); // Use std::hypot instead of hypot
     double scale = (dist == 0.0) ? 1.0 : std::min(1.0, max_length / dist);
     // if x is dominant
     if (abs_dx >= abs_dy) {
@@ -460,8 +464,11 @@ class Costmap2D {
 
   class PolygonOutlineCells {
    public:
+    // PolygonOutlineCells(const Costmap2D &costmap, const unsigned char *char_map, std::vector<MapLocation> &cells) :
+    //     costmap_(costmap), char_map_(char_map), cells_(cells) {
+    // }
     PolygonOutlineCells(const Costmap2D &costmap, const unsigned char *char_map, std::vector<MapLocation> &cells) :
-        costmap_(costmap), char_map_(char_map), cells_(cells) {
+        costmap_(costmap), cells_(cells) {
     }
 
     // just push the relevant cells back onto the list
@@ -473,7 +480,7 @@ class Costmap2D {
 
    private:
     const Costmap2D &costmap_;
-    const unsigned char *char_map_;
+    // const unsigned char *char_map_;
     std::vector<MapLocation> &cells_;
   };
 };

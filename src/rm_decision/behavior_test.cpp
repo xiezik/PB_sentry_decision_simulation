@@ -1,13 +1,13 @@
 #include <rclcpp/rclcpp.hpp>
 
-#include "executor/chassis_executor.h"
+#include "executor/chassis_executor.hpp"
 
-#include "example_behavior/back_boot_area_behavior.h"
-#include "example_behavior/escape_behavior.h"
-#include "example_behavior/chase_behavior.h"
-#include "example_behavior/search_behavior.h"
-#include "example_behavior/patrol_behavior.h"
-#include "example_behavior/goal_behavior.h"
+#include "example_behavior/back_boot_area_behavior.hpp"
+#include "example_behavior/escape_behavior.hpp"
+#include "example_behavior/chase_behavior.hpp"
+#include "example_behavior/search_behavior.hpp"
+#include "example_behavior/patrol_behavior.hpp"
+#include "example_behavior/goal_behavior.hpp"
 
 void Command();
 char command = '0';

@@ -53,9 +53,9 @@
 #define HERO_COSTMAP_INFLATION_LAYER_H
 
 #include <mutex>
-#include "map_common.h"
-#include "layer.h"
-#include "layered_costmap.h"
+#include "map_common.hpp"
+#include "layer.hpp"
+#include "layered_costmap.hpp"
 
 namespace hero_costmap {
 

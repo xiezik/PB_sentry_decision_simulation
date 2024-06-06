@@ -53,7 +53,7 @@
 #include <thread>
 #include <csignal>
 
-#include "costmap_interface.hpp"
+#include "rm_costmap/costmap_interface.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 void SignalHandler(int signal){

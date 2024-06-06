@@ -54,7 +54,7 @@
 #include <pcl/conversions.h>
 #include <pcl/PCLPointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include "observation_buffer.h"
+#include "rm_costmap/observation_buffer.hpp"
 
 using namespace std;
 using namespace tf;

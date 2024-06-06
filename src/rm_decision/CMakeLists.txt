@@ -19,12 +19,22 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+find_package(Protobuf REQUIRED)
+include_directories(${Protobuf_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+
 ###########
 ## Build ##
 ###########
 
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS proto/decision.proto)
+# protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS EXPORT_MACRO DLL_EXPORT proto/decision.proto)
+# protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS DESCRIPTORS PROTO_DESCS proto/decision.proto)
+
 ament_auto_add_library(${PROJECT_NAME} SHARED
-  ${DecisionProtoSrc}
+  ${PROTO_SRCS}
+  ${PROTO_HDRS}
   executor/chassis_executor.cpp
   executor/gimbal_executor.cpp
   executor/point_navigation.cpp
@@ -33,10 +43,10 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
   behavior_test.cpp
 )
 
-rclcpp_components_register_node(${PROJECT_NAME}
-  PLUGIN JudgesysControl::JudgesysControl
-  EXECUTABLE ${PROJECT_NAME}_node
-)
+# rclcpp_components_register_node(${PROJECT_NAME}
+#   PLUGIN JudgesysControl::JudgesysControl
+#   EXECUTABLE ${PROJECT_NAME}_node
+# )
 
 #############
 ## Testing ##

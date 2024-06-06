@@ -4,8 +4,7 @@
 #include <std_msgs/msg/detail/float64__struct.hpp>
 #include <sys/time.h>
 #include <thread>
-#include "hero_map/hero_map.h"
-#include "hero_math/math.h"
+#include "../../rm_common/include/rm_map.hpp"
 #include "../../rm_common/include/math.hpp"
 //
 

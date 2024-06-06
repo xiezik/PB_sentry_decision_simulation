@@ -49,7 +49,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  *********************************************************************/
-#include "costmap_math.h"
+#include "rm_costmap/costmap_math.hpp"
 namespace hero_costmap {
 double Distance2Line(double pX, double pY, double x0, double y0, double x1, double y1) {
   double A = pX - x0;

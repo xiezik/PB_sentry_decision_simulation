@@ -53,10 +53,10 @@
 #ifndef HERO_COSTMAP_COSTMAP_LAYER_H
 #define HERO_COSTMAP_COSTMAP_LAYER_H
 
-#include <ros/ros.h>
-#include "layer.h"
-#include "layered_costmap.h"
-#include "costmap_2d.h"
+#include <rclcpp/rclcpp.hpp>
+#include "layer.hpp"
+#include "layered_costmap.hpp"
+#include "costmap_2d.hpp"
 
 namespace hero_costmap {
 

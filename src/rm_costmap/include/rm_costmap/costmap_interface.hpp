@@ -54,6 +54,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/StdVector>
+#include <tf2_ros/buffer.h>
 #include <thread>
 
 #include <geometry_msgs/msg/polygon_stamped.hpp>
@@ -92,7 +93,8 @@ class CostmapInterface {
    * @param tf The tf listener
    * @param map_update_frequency The frequency to update costmap
    */
-  CostmapInterface(std::string map_name, tf::TransformListener& tf, std::string config_file);
+  CostmapInterface(std::string map_name, tf2_ros::Buffer& tf, std::string config_file);
+  // CostmapInterface(std::string map_name, tf::TransformListener& tf, std::string config_file);
   ~CostmapInterface();
   /**
    * @brief Start the costmap processing.
@@ -131,6 +133,7 @@ class CostmapInterface {
    * @return True if got successfully.
    */
   bool GetRobotPose(tf::Stamped<tf::Pose>& global_pose) const;
+  // bool GetRobotPose(tf::Stamped<tf::Pose>& global_pose) const;
   /**
    * @brief Get the costmap.
    * @return The class containing costmap data.
@@ -143,7 +146,7 @@ class CostmapInterface {
    * @param global_pose
    * @return True if success.
    */
-  bool GetRobotPose(geometry_msgs::PoseStamped & global_pose) const;
+  bool GetRobotPose(geometry_msgs::msg::PoseStamped & global_pose) const;
   /**
    * @brief Get the global map frame.
    * @return The global map frame name.
@@ -169,38 +172,38 @@ class CostmapInterface {
    * @brief Get the footprint polygon which are already padded.
    * @return The footprint polygon.
    */
-  geometry_msgs::Polygon GetRobotFootprintPolygon() {
+  geometry_msgs::msg::Polygon GetRobotFootprintPolygon() {
     return ToPolygon(padded_footprint_);
   }
   /**
    * @brief Get the footprint points which are already padded.
    * @return The vector of footprint point.
    */
-  std::vector<geometry_msgs::Point> GetRobotFootprint() {
+  std::vector<geometry_msgs::msg::Point> GetRobotFootprint() {
     return padded_footprint_;
   }
   /**
    * @brief Get the footprint which are not padded.
    * @return The vector of footprint point.
    */
-  std::vector<geometry_msgs::Point> GetUnpaddedRobotFootprint() {
+  std::vector<geometry_msgs::msg::Point> GetUnpaddedRobotFootprint() {
     return unpadded_footprint_;
   }
   /**
    * @brief Get the oriented footprint in global map.
    * @param oriented_footprint
    */
-  void GetOrientedFootprint(std::vector<geometry_msgs::Point>& oriented_footprint) const;
+  void GetOrientedFootprint(std::vector<geometry_msgs::msg::Point>& oriented_footprint) const;
   /**
    * @brief Set up the robot footprint.
    * @param points Input vector of points to setup the robot footprint.
    */
-  void SetUnpaddedRobotFootprint(const std::vector<geometry_msgs::Point>& points);
+  void SetUnpaddedRobotFootprint(const std::vector<geometry_msgs::msg::Point>& points);
   /**
    * @brief Set up the robot footprint.
    * @param footprint Input po"CostmapInterface"lygon to setup the robot footprint.
    */
-  void SetUnpaddedRobotFootprintPolygon(const geometry_msgs::Polygon& footprint);
+  void SetUnpaddedRobotFootprintPolygon(const geometry_msgs::msg::Polygon& footprint);
 
   /**
    * @brief Output the original footprint.
@@ -228,18 +231,18 @@ class CostmapInterface {
    * @param pose_msg
    * @return PoseStamped message.
    */
-  geometry_msgs::PoseStamped Pose2GlobalFrame(const geometry_msgs::PoseStamped& pose_msg);
+  geometry_msgs::msg::PoseStamped Pose2GlobalFrame(const geometry_msgs::msg::PoseStamped& pose_msg);
   void ClearCostMap();
   void ClearLayer(CostmapLayer* costmap_layer_ptr, double pose_x, double pose_y);
  protected:
   void LoadParameter();
-  std::vector<geometry_msgs::Point> footprint_points_;
+  std::vector<geometry_msgs::msg::Point> footprint_points_;
   CostmapLayers* layered_costmap_;
   std::string name_, config_file_, config_file_inflation_;
   tf::TransformListener& tf_;
   std::string global_frame_, robot_base_frame_;
   double transform_tolerance_, dist_behind_robot_threshold_to_care_obstacles_;
-  nav_msgs::OccupancyGrid grid_;
+  nav_msgs::msg::OccupancyGrid grid_;
   char* cost_translation_table_ = new char[256];
 
   ros::Publisher costmap_pub_;
@@ -247,7 +250,7 @@ class CostmapInterface {
  private:
   void DetectMovement(const ros::TimerEvent &event);
   void MapUpdateLoop(double frequency);
-  std::vector<geometry_msgs::Point> unpadded_footprint_, padded_footprint_;
+  std::vector<geometry_msgs::msg::Point> unpadded_footprint_, padded_footprint_;
   float footprint_padding_;
   bool map_update_thread_shutdown_, stop_updates_, initialized_, stopped_, robot_stopped_, got_footprint_, is_debug_, \
        is_track_unknown_, is_rolling_window_, has_static_layer_, has_obstacle_layer_, has_debuff_layer_,has_tactic_layer_,has_inflation_layer_;

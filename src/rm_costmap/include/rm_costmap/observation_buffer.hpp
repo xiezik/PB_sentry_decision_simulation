@@ -56,12 +56,11 @@
 #include <list>
 #include <string>
 #include <mutex>
-#include <ros/time.h>
-#include <tf/transform_listener.h>
-#include <tf/transform_datatypes.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/message_filter.h>
 #include <pcl/point_cloud.h>
-#include <sensor_msgs/PointCloud2.h>
-#include "observation.h"
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include "observation.hpp"
 
 namespace hero_costmap {
 /**
@@ -86,7 +85,7 @@ class ObservationBuffer {
    */
   ObservationBuffer(std::string topic_name, double observation_keep_time, double expected_update_rate,
                     double min_obstacle_height, double max_obstacle_height, double obstacle_range,
-                    double raytrace_range, tf::TransformListener &tf, std::string global_frame,
+                    double raytrace_range, tf2_ros::Buffer &tf, std::string global_frame,
                     std::string sensor_frame, double tf_tolerance);
 
   /**
@@ -107,14 +106,14 @@ class ObservationBuffer {
    * @brief  Transforms a PointCloud to the global frame and buffers it
    * @param  cloud The cloud to be buffered
    */
-  void BufferCloud(const sensor_msgs::PointCloud2 &cloud);
+  void BufferCloud(const sensor_msgs::msg::PointCloud2::SharedPtr cloud);
 
   /**
    * @brief  Transforms a PointCloud to the global frame and buffers it
    * <b>Note: The burden is on the user to make sure the transform is available... ie they should use a MessageNotifier</b>
    * @param  cloud The cloud to be buffered
    */
-  void BufferCloud(const pcl::PointCloud<pcl::PointXYZ> &cloud);
+  void BufferCloud(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud);
 
   /**
    * @brief  Pushes copies of all current observations onto the end of the vector passed in
@@ -153,10 +152,10 @@ class ObservationBuffer {
    */
   void PurgeStaleObservations();
 
-  tf::TransformListener &tf_;
-  const ros::Duration observation_keep_time_;
-  const ros::Duration expected_update_rate_;
-  ros::Time last_updated_;
+  tf2_ros::Buffer &tf_;
+  const rclcpp::Duration observation_keep_time_;
+  const rclcpp::Duration expected_update_rate_;
+  rclcpp::Time last_updated_;
   std::string global_frame_;
   std::string sensor_frame_;
   std::list<Observation> observation_list_;
@@ -165,7 +164,7 @@ class ObservationBuffer {
   std::recursive_mutex lock_;
   double obstacle_range_, raytrace_range_;
   double tf_tolerance_;
-};
+};;
 
 }// namespace hero_costmap
 #endif  //HERO_COSTMAP_OBSERVATION_BUFFER_H
