@@ -1,14 +1,17 @@
 #ifndef TACTIC_LAYER_H
 #define TACTIC_LAYER_H
 
-#include <nav_msgs/OccupancyGrid.h>
-#include "io/io.h"
-#include "map_common.h"
-#include "costmap_layer.h"
-#include <nav_msgs/GetMap.h>
-#include "tf/tf.h"
-#include "hero_msgs/RobotPosition.h"
-#include "hero_msgs/BattlePosition.h"
+#include <nav_msgs/msg/occupancy_grid.hpp>
+// #include "io/io.h"
+// #include "map_common.h"
+#include "costmap_layer.hpp"
+#include <nav_msgs/srv/detail/get_map__struct.hpp>
+#include <nav_msgs/srv/get_map.hpp>
+#include <rclcpp/client.hpp>
+#include <rclcpp/subscription.hpp>
+#include <rm_decision_interfaces/msg/detail/battle_position__struct.hpp>
+#include "rm_decision_interfaces/msg/robot_position.hpp"
+#include "rm_decision_interfaces/msg/battle_position.hpp"
 
 namespace hero_costmap {
 
@@ -28,15 +31,15 @@ public:
 
 private:
  std::string enemy_name_[2];
- hero_msgs::BattlePosition battle_position_;
- ros::Subscriber battle_position_sub_;
- ros::ServiceClient static_map_srv_;
- nav_msgs::OccupancyGrid map_;
+ rm_decision_interfaces::msg::BattlePosition battle_position_;
+ rclcpp::Subscription<rm_decision_interfaces::msg::BattlePosition>::SharedPtr battle_position_sub_;
+ rclcpp::Client<nav_msgs::srv::GetMap>::SharedPtr static_map_srv_;
+ nav_msgs::msg::OccupancyGrid map_;
 
  bool battleinfo_received_;
  signed char *dirmap_;
- void BattlePositionCallback(const hero_msgs::BattlePosition::ConstPtr &msg);
- hero_msgs::RobotPosition FindRobotPosition(std::string robot_name);
+ void BattlePositionCallback(const rm_decision_interfaces::msg::BattlePosition::SharedPtr &msg);
+ rm_decision_interfaces::msg::RobotPosition FindRobotPosition(std::string robot_name);
  bool GetStaticMap();
  void UpdateTacticCost(std::string robot_name);
  void ResetDirmap();

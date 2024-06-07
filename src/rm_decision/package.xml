@@ -14,7 +14,6 @@
 
   <!-- buildtool_depend: dependencies of the build process -->
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>ament_auto_protobuf_generate_packages</buildtool_depend>
 
   <!-- depend: build, export, and execution dependency -->
   <depend>rclcpp</depend>

@@ -1,30 +1,30 @@
 #include "rm_costmap/debuff_layer.hpp"
+#include <geometry_msgs/msg/detail/point_stamped__struct.hpp>
 
 
 namespace hero_costmap {
 
 void DebuffLayer::OnInitialize()
 {
-  ros::NodeHandle nh;
-  GetParam(&nh);
+  GetParam(nh);
+  tf2_ros::Buffer buffer_;
   buffinfo_received_ = false;
-  listener_ = std::make_shared<tf::TransformListener>(ros::Duration(10));
-  buff_info_sub_ = nh.subscribe<hero_msgs::Buffinfo>("/judgeSysInfo/buff_info", 1000,&DebuffLayer::BuffInfoCallback,this);
+  listener_ = std::make_shared<tf2_ros::TransformListener>(buffer_);
+  buff_info_sub_ = nh->create_subscription<rm_decision_interfaces::msg::Buffinfo>("/judgeSysInfo/buff_info", 1000, std::bind(&DebuffLayer::BuffInfoCallback, this, std::placeholders::_1));
 
-  ros::Rate temp_rate(10);
-  while(!buffinfo_received_) {
-    ROS_INFO("DebuffLayer waiting buff_info");
-    ros::spinOnce();
+  rclcpp::Rate temp_rate(10);
+  while (!buffinfo_received_) {
+    RCLCPP_INFO(nh->get_logger(), "DebuffLayer waiting buff_info");
+    rclcpp::spin_some(nh);
     temp_rate.sleep();
   }
   DebuffLayer::MatchSize();
-
 
   is_enabled_ = true;
   is_current_ = true;
   default_value_ = FREE_SPACE;
   //if(layered_costmap_->IsRollingWindow())
-    inflation_ = 0;
+  inflation_ = 0;
   //else
   //  inflation_ = 0.1;
 }
@@ -34,7 +34,7 @@ void DebuffLayer::Activate() {
 }
 
 void DebuffLayer::Deactivate() {
-  buff_info_sub_.shutdown();
+  buff_info_sub_.reset();
 }
 
 
@@ -63,12 +63,11 @@ void DebuffLayer::UpdateCosts(Costmap2D &master_grid, int min_i, int min_j, int 
 {
   if(!buffinfo_received_)
     return;
-  //if(!layered_costmap_->IsRollingWindow()) {
+  if(!layered_costmap_->IsRollingWindow()) {
     UpdateOverwriteByMax(master_grid, min_i, min_j, max_i, max_j);
     //UpdateOverwriteByAll(master_grid, min_i, min_j, max_i, max_j);
  //   ROS_ERROR("OVERWRITE");
- // }
-
+  }
 }
 
 
@@ -90,14 +89,14 @@ void DebuffLayer::GetParam(ros::NodeHandle *nh)
     nh->param<double>("/RFID_width", RFID_width, 0.46);
 }
 
-void DebuffLayer::BuffInfoCallback(const hero_msgs::Buffinfo::ConstPtr &msg)
+void DebuffLayer::BuffInfoCallback(const rm_decision_interfaces::msg::Buffinfo::SharedPtr &msg)
 {
     buffInfo_ = *msg;
     buffinfo_received_ = true;
-    std::vector<geometry_msgs::Point> polygon;
-    geometry_msgs::Point point;
-    tf::Stamped<tf::Point> stamped_point;
-    tf::Stamped<tf::Point> stamped_point_out;
+    std::vector<geometry_msgs::msg::Point> polygon;
+    geometry_msgs::msg::Point point;
+    geometry_msgs::msg::PointStamped stamped_point;
+    geometry_msgs::msg::PointStamped stamped_point_out;
     ResetMaps();
     for(int j =0;j<2;j++)
     {

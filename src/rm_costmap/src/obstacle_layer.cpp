@@ -51,18 +51,20 @@
  *********************************************************************/
 #include "obstacle_layer_setting.pb.h"
 #include "rm_costmap/obstacle_layer.hpp"
+#include <rclcpp/logger.hpp>
+#include <sensor_msgs/msg/detail/laser_scan__struct.hpp>
 
 namespace hero_costmap {
 
 void ObstacleLayer::OnInitialize() {
-  ros::NodeHandle nh;
+  auto nh = rclcpp::Node::make_shared("ObstacleLayer");
   ParaObstacleLayer para_obstacle;
 
   std::string obstacle_map = ros::package::getPath("hero_costmap") + \
       "/config/obstacle_layer_config.prototxt";
-  hero_common::ReadProtoFromTextFile(obstacle_map.c_str(), &para_obstacle);
+  rm_common::ReadProtoFromTextFile(obstacle_map.c_str(), &para_obstacle);
   double observation_keep_time = 0.1, expected_update_rate = 10.0, min_obstacle_height = 0.2, \
- max_obstacle_height = 0.6, obstacle_range = 2.5, raytrace_range = 3.0, transform_tolerance = 0.2;
+ max_obstacle_height = 0.6, obstacle_range = 2.5, raytrace_range = 3.0, transform_tolerance = 0.2,max_obstacle_height_=0.0;
   observation_keep_time = para_obstacle.observation_keep_time();
   expected_update_rate = para_obstacle.expected_update_rate();
   transform_tolerance = para_obstacle.transform_tolerance();
@@ -71,18 +73,20 @@ void ObstacleLayer::OnInitialize() {
   obstacle_range = para_obstacle.obstacle_range();
   raytrace_range = para_obstacle.raytrace_range();
   max_obstacle_height_ = max_obstacle_height;
-  footprint_clearing_enabled_ = para_obstacle.footprint_clearing_enabled();
+  footprintClearingEnabled_ = para_obstacle.footprint_clearing_enabled();
   std::string topic_string = "LaserScan", sensor_frame = "laser_frame";
   topic_string = para_obstacle.topic_string();
   sensor_frame = para_obstacle.sensor_frame();
   
-   if(nh.getNamespace().c_str()!="/"&&nh.getNamespace().size()>5)
+
+  if(std::string(nh->get_namespace()) != "/" && std::string(nh->get_namespace()).size() > 5)
   {
-    topic_string = nh.getNamespace().substr(1) + '/' + topic_string;
-    sensor_frame = nh.getNamespace().substr(1) + '/' + sensor_frame;
+    topic_string = std::string(nh->get_namespace()).substr(1) + '/' + topic_string;
+    sensor_frame = std::string(nh->get_namespace()).substr(1) + '/' + sensor_frame;
   }
-  ROS_INFO("topic_string:%s",topic_string.c_str());
-  ROS_INFO("sensor_frame:%s",sensor_frame.c_str());
+
+  RCLCPP_INFO(nh->get_logger(), "topic_string: %s", topic_string.c_str());
+  RCLCPP_INFO(nh->get_logger(), "sensor_frame: %s", sensor_frame.c_str());
 
   bool inf_is_valid = false, clearing = false, marking = true;
   inf_is_valid = para_obstacle.inf_is_valid();
@@ -116,20 +120,24 @@ void ObstacleLayer::OnInitialize() {
     clearing_buffers_.push_back(observation_buffers_.back());
   } 
   reset_time_ = std::chrono::system_clock::now();
-  std::shared_ptr<message_filters::Subscriber<sensor_msgs::LaserScan>
-  > sub(new message_filters::Subscriber<sensor_msgs::LaserScan>(nh, topic_string, 50));
-  std::shared_ptr<tf::MessageFilter<sensor_msgs::LaserScan>
-  > filter(new tf::MessageFilter<sensor_msgs::LaserScan>(*sub, *tf_, global_frame_, 50));
+  std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::LaserScan>
+  > sub(new message_filters::Subscriber<sensor_msgs::msg::LaserScan>(nh, topic_string, 50));
+  std::shared_ptr<tf2_ros::MessageFilter<sensor_msgs::msg::LaserScan>
+  > filter(new tf::MessageFilter<sensor_msgs::msg::LaserScan>(*sub, *tf_, global_frame_, 50));
   if (inf_is_valid) {
     filter->registerCallback(
-        boost::bind(&ObstacleLayer::LaserScanValidInfoCallback, this, _1, observation_buffers_.back()));
+        [this](const sensor_msgs::msg::LaserScan::SharedPtr msg) {
+          LaserScanValidInfoCallback(msg, observation_buffers_.back());
+        });
   } else {
     filter->registerCallback(
-        boost::bind(&ObstacleLayer::LaserScanCallback, this, _1, observation_buffers_.back()));
+        [this](const sensor_msgs::msg::LaserScan::SharedPtr msg) {
+          LaserScanCallback(msg, observation_buffers_.back());
+        });
   }
   observation_subscribers_.push_back(sub);
   observation_notifiers_.push_back(filter);
-  observation_notifiers_.back()->setTolerance(ros::Duration(0.05));
+  observation_notifiers_.back()->setTolerance(rclcpp::Duration::from_seconds(0.05));
   std::vector<std::string> target_frames;
   target_frames.push_back(global_frame_);
   target_frames.push_back(sensor_frame);
@@ -137,9 +145,9 @@ void ObstacleLayer::OnInitialize() {
   is_enabled_ = true;
 }
 
-void ObstacleLayer::LaserScanCallback(const sensor_msgs::LaserScanConstPtr &message,
-                                      const std::shared_ptr<ObservationBuffer> &buffer) {
-  sensor_msgs::PointCloud2 temp_cloud;
+void ObstacleLayer::LaserScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr message,
+                         const std::shared_ptr<ObservationBuffer> &buffer) {
+  sensor_msgs::msg::PointCloud2 temp_cloud;
   temp_cloud.header = message->header;
   try {
     projector_.transformLaserScanToPointCloud(temp_cloud.header.frame_id, *message, temp_cloud, *tf_);
@@ -152,23 +160,23 @@ void ObstacleLayer::LaserScanCallback(const sensor_msgs::LaserScanConstPtr &mess
   buffer->Unlock();
 }
 
-void ObstacleLayer::LaserScanValidInfoCallback(const sensor_msgs::LaserScanConstPtr &raw_message,
+void ObstacleLayer::LaserScanValidInfoCallback(const sensor_msgs::msg::LaserScan::SharedPtr &raw_message,
                                                const std::shared_ptr<ObservationBuffer> &buffer) {
   float epsilon = 0.0001, range;
-  sensor_msgs::LaserScan message = *raw_message;
+  sensor_msgs::msg::LaserScan message = *raw_message;
   for (size_t i = 0; i < message.ranges.size(); i++) {
     range = message.ranges[i];
     if (!std::isfinite(range) && range > 0) {
       message.ranges[i] = message.range_max - epsilon;
     }
   }
-  sensor_msgs::PointCloud2 cloud;
+  sensor_msgs::msg::PointCloud2 cloud;
   cloud.header = message.header;
   try {
     projector_.transformLaserScanToPointCloud(message.header.frame_id, message, cloud, *tf_);
   }
   catch (tf::TransformException &ex) {
-    ROS_ERROR("High fidelity enabled, but TF returned a transform exception to frame %s: %s", \
+    RCLCPP_ERROR(rclcpp::get_logger("ObstacleLayer"),"High fidelity enabled, but TF returned a transform exception to frame %s: %s", \
         global_frame_.c_str(), ex.what());
     projector_.projectLaser(message, cloud);
   }
@@ -191,7 +199,7 @@ void ObstacleLayer::UpdateBounds(double robot_x,
     ResetMaps();
   }
   if (!is_enabled_) {
-    ROS_ERROR("Obstacle layer is not enabled.");
+    RCLCPP_ERROR(rclcpp::get_logger("ObstacleLayer"),"Obstacle layer is not enabled.");
     return;
   }
   UseExtraBounds(min_x, min_y, max_x, max_y);
@@ -243,7 +251,7 @@ void ObstacleLayer::UpdateBounds(double robot_x,
 
 void ObstacleLayer::UpdateCosts(Costmap2D &master_grid, int min_i, int min_j, int max_i, int max_j) {
   if (!is_enabled_) {
-    ROS_WARN("Obstacle layer is not enabled");
+    RCLCPP_WARN(rclcpp::get_logger("ObstacleLayer"),"Obstacle layer is not enabled");
     return;
   }
 

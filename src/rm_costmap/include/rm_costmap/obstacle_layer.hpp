@@ -53,7 +53,6 @@
 #define HERO_COSTMAP_OBSTACLE_LAYER_H
 
 #include <chrono>
-
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <laser_geometry/laser_geometry.hpp>
@@ -80,42 +79,42 @@ public:
   }
 
   virtual ~ObstacleLayer() {}
-  virtual void onInitialize();
-  virtual void activate();
-  virtual void deactivate();
-  virtual void reset();
-  virtual void updateCosts(Costmap2D &master_grid, int min_i, int min_j, int max_i, int max_j);
-  virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y,
+  virtual void OnInitialize();
+  virtual void Activate();
+  virtual void Deactivate();
+  virtual void Reset();
+  virtual void UpdateCosts(Costmap2D &master_grid, int min_i, int min_j, int max_i, int max_j);
+  virtual void UpdateBounds(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y,
                             double *max_x, double *max_y);
-  void laserScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr message,
+  void LaserScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr message,
                          const std::shared_ptr<ObservationBuffer> &buffer);
-  void laserScanValidInfoCallback(const sensor_msgs::msg::LaserScan::SharedPtr message,
-                                  const std::shared_ptr<ObservationBuffer> &buffer);
+  void LaserScanValidInfoCallback(const sensor_msgs::msg::LaserScan::SharedPtr &raw_message,
+                                               const std::shared_ptr<ObservationBuffer> &buffer);
 
 protected:
-  bool getMarkingObservations(std::vector<Observation> &marking_observations) const;
-  bool getClearingObservations(std::vector<Observation> &clearing_observations) const;
-  virtual void raytraceFreespace(const Observation &clearing_observation, double *min_x, double *min_y,
+  bool GetMarkingObservations(std::vector<Observation> &marking_observations) const;
+  bool GetClearingObservations(std::vector<Observation> &clearing_observations) const;
+  virtual void RaytraceFreespace(const Observation &clearing_observation, double *min_x, double *min_y,
                                  double *max_x, double *max_y);
-  void updateRaytraceBounds(double ox, double oy, double wx, double wy, double range, double *min_x, double *min_y,
+  void UpdateRaytraceBounds(double ox, double oy, double wx, double wy, double range, double *min_x, double *min_y,
                             double *max_x, double *max_y);
-  void updateFootprint(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y,
+  void UpdateFootprint(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y,
                        double *max_x, double *max_y);
-  bool footprintClearingEnabled_, rollingWindow_;
-  int combinationMethod_;
-  std::string globalFrame_;
-  double maxObstacleHeight_;
-  std::vector<geometry_msgs::msg::Point> transformedFootprint_;
+  bool footprint_clearing_enabled_, rolling_window_;
+  int combination_method_;
+  std::string global_frame_;
+  double max_obstacle_height_;
+  std::vector<geometry_msgs::msg::Point> transformed_footprint_;
   laser_geometry::LaserProjection projector_;
 
-  std::vector<std::shared_ptr<message_filters::SubscriberBase>> observationSubscribers_;
-  std::vector<std::shared_ptr<tf2_ros::MessageFilterBase>> observationNotifiers_;
-  std::vector<std::shared_ptr<ObservationBuffer>> observationBuffers_;
-  std::vector<std::shared_ptr<ObservationBuffer>> markingBuffers_;
-  std::vector<std::shared_ptr<ObservationBuffer>> clearingBuffers_;
+  std::vector<std::shared_ptr<message_filters::SubscriberBase<>>> observation_subscribers_;
+  std::vector<std::shared_ptr<tf2_ros::MessageFilterBase>> observation_notifiers_;
+  std::vector<std::shared_ptr<ObservationBuffer>> observation_buffers_;
+  std::vector<std::shared_ptr<ObservationBuffer>> marking_buffers_;
+  std::vector<std::shared_ptr<ObservationBuffer>> clearing_buffers_;
 
-  std::vector<Observation> staticClearingObservations_, staticMarkingObservations_;
-  std::chrono::system_clock::time_point resetTime_;
+  std::vector<Observation> static_clearing_observations_, static_marking_observations_;
+  std::chrono::system_clock::time_point reset_time_;
 };;
 
 } //namespace hero_costmap

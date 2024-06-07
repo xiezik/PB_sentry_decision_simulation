@@ -77,7 +77,7 @@ double Distance2Line(double pX, double pY, double x0, double y0, double x1, doub
   return distance(pX, pY, xx, yy);
 }
 
-bool Intersect(std::vector<geometry_msgs::Point> &polygon, float testx, float testy) {
+bool Intersect(std::vector<geometry_msgs::msg::Point> &polygon, float testx, float testy) {
   bool c = false;
   int i, j, nvert = polygon.size();
   for (i = 0, j = nvert - 1; i < nvert; j = i++) {
@@ -89,14 +89,14 @@ bool Intersect(std::vector<geometry_msgs::Point> &polygon, float testx, float te
   return c;
 }
 
-bool intersects_helper(std::vector<geometry_msgs::Point> &polygon1, std::vector<geometry_msgs::Point> &polygon2) {
+bool intersects_helper(std::vector<geometry_msgs::msg::Point> &polygon1, std::vector<geometry_msgs::msg::Point> &polygon2) {
   for (unsigned int i = 0; i < polygon1.size(); i++)
     if (Intersect(polygon2, polygon1[i].x, polygon1[i].y))
       return true;
   return false;
 }
 
-bool Intersect(std::vector<geometry_msgs::Point> &polygon1, std::vector<geometry_msgs::Point> &polygon2) {
+bool Intersect(std::vector<geometry_msgs::msg::Point> &polygon1, std::vector<geometry_msgs::msg::Point> &polygon2) {
   return intersects_helper(polygon1, polygon2) || intersects_helper(polygon2, polygon1);
 }
 

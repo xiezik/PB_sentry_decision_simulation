@@ -50,12 +50,14 @@
  *
  *********************************************************************/
 #include "rm_costmap/layered_costmap.hpp"
+#include "rm_costmap/layer.hpp"
+#include <rclcpp/logger.hpp>
 
 namespace hero_costmap {
 
-CostmapLayers::CostmapLayers(std::string global_frame, bool rolling_window, bool track_unknown) : costmap_(), \
-                             global_frame_id_(global_frame), is_rolling_window_(rolling_window), is_initialized_(false), \
-                             is_size_locked_(false), file_path_("") {
+CostmapLayers::CostmapLayers(std::string global_frame, bool rolling_window, bool track_unknown) : global_frame_id_(global_frame), \
+                             file_path_(""),costmap_(), is_rolling_window_(rolling_window),  \
+                             is_size_locked_(false),is_initialized_(false) {
   if (track_unknown) {
     costmap_.SetDefaultValue(255);
   } else {
@@ -86,7 +88,7 @@ void CostmapLayers::ResizeMap(unsigned int size_x,
                               bool size_locked) {
   is_size_locked_ = size_locked;
   costmap_.ResizeMap(size_x, size_y, resolution, origin_x, origin_y);
-  ROS_INFO("resize! resolution = %f",resolution);
+  RCLCPP_INFO(rclcpp::get_logger("CostmapLayers"),"resize! resolution = %f",resolution);
   for (auto it = plugins_.begin(); it != plugins_.end(); ++it) {
     (*it)->MatchSize();
   }
@@ -101,7 +103,7 @@ void CostmapLayers::UpdateMap(double robot_x, double robot_y, double robot_yaw) 
     costmap_.UpdateOrigin(new_origin_x, new_origin_y);
   }
   if (plugins_.size() == 0) {
-    ROS_WARN("No Layer");
+    RCLCPP_WARN(rclcpp::get_logger("CostmapLayers"),"No Layer");
     return;
   }
  // ROS_INFO("UPDATE1");
@@ -118,7 +120,7 @@ void CostmapLayers::UpdateMap(double robot_x, double robot_y, double robot_yaw) 
    //ROS_INFO("bound %s %f, %f, %f, %f",(*plugin)->GetName().c_str(),minx_,miny_,maxx_,maxy_);
     count++;
     if (minx_ > prev_minx || miny_ > prev_miny || maxx_ < prev_maxx || maxy_ < prev_maxy) {
-      ROS_WARN("Illegal bounds change. The offending layer is %s", (*plugin)->GetName().c_str());
+      RCLCPP_WARN(rclcpp::get_logger("CostmapLayers"),"Illegal bounds change. The offending layer is %s", (*plugin)->GetName().c_str());
     }
   }
   int x0, xn, y0, yn;
@@ -144,7 +146,7 @@ void CostmapLayers::UpdateMap(double robot_x, double robot_y, double robot_yaw) 
   is_initialized_ = true;
 }
 
-void CostmapLayers::SetFootprint(const std::vector<geometry_msgs::Point> &footprint_spec) {
+void CostmapLayers::SetFootprint(const std::vector<geometry_msgs::msg::Point> &footprint_spec) {
   footprint_ = footprint_spec;
   CalculateMinAndMaxDistances(footprint_spec, inscribed_radius_, circumscribed_radius_);
   for (auto plugin = plugins_.begin(); plugin != plugins_.end(); ++plugin) {

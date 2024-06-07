@@ -52,10 +52,12 @@
 #ifndef HERO_COSTMAP_STATIC_LAYER_H
 #define HERO_COSTMAP_STATIC_LAYER_H
 
-#include <nav_msgs/OccupancyGrid.h>
-#include "io/io.h"
-#include "map_common.h"
-#include "costmap_layer.h"
+#include <nav_msgs/msg/detail/occupancy_grid__struct.hpp>
+#include <nav_msgs/msg/occupancy_grid.hpp>
+#include <rclcpp/subscription.hpp>
+// #include "io/io.h"
+// #include "map_common.h"
+#include "costmap_layer.hpp"
 
 namespace hero_costmap {
 
@@ -74,7 +76,7 @@ class StaticLayer : public CostmapLayer {
   virtual void MatchSize();
 
  private:
-  void InComingMap(const nav_msgs::OccupancyGridConstPtr& new_map);
+  void InComingMap(const nav_msgs::msg::OccupancyGrid::ConstSharedPtr& new_map);
 //  void IncomingUpdate(const map_msgs::OccupancyGridUpdateConstPtr& update);
   unsigned char InterpretValue(unsigned char value);
   std::string global_frame_;
@@ -89,7 +91,7 @@ class StaticLayer : public CostmapLayer {
   bool use_maximum_;
   bool first_map_only_;
   bool trinary_costmap_;
-  ros::Subscriber map_sub_, map_update_sub_;
+  rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr map_sub_;
 };
 
 

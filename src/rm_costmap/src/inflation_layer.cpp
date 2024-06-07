@@ -51,6 +51,7 @@
  *********************************************************************/
 #include <algorithm>
 #include <mutex>
+#include <rclcpp/logger.hpp>
 #include "rm_costmap/costmap_math.hpp"
 #include "rm_costmap/footprint.hpp"
 #include "rm_costmap/inflation_layer.hpp"
@@ -85,13 +86,13 @@ void InflationLayer::OnInitialize() {
   need_reinflation_ = false;
   double inflation_radius, cost_scaling_factor;
   ParaInflationLayer para_inflation;
-  hero_common::ReadProtoFromTextFile(layered_costmap_->GetFilePath().c_str(), &para_inflation);
-  ROS_INFO("layered_costmap_->GetFilePath() :%s",layered_costmap_->GetFilePath().c_str());
+  rm_common::ReadProtoFromTextFile(layered_costmap_->GetFilePath().c_str(), &para_inflation);
+  RCLCPP_INFO(rclcpp::get_logger("InflationLayer"),"layered_costmap_->GetFilePath() :%s",layered_costmap_->GetFilePath().c_str());
   inflation_radius = para_inflation.inflation_radius();
   cost_scaling_factor = para_inflation.cost_scaling_factor();
   need_reinflation_ = false;
   SetInflationParameters(inflation_radius, cost_scaling_factor);  
-  ROS_INFO("inflation_radius_ = %f",inflation_radius_);
+  RCLCPP_INFO(rclcpp::get_logger("InflationLayer"),"inflation_radius_ = %f",inflation_radius_);
   is_enabled_ = true;
   inflate_unknown_ = false;
   need_reinflation_ = true;
@@ -153,11 +154,11 @@ void InflationLayer::OnFootprintChanged() {
 void InflationLayer::UpdateCosts(Costmap2D &master_grid, int min_i, int min_j, int max_i, int max_j) {
   std::unique_lock<std::recursive_mutex> lock(*inflation_access_);
   if (!is_enabled_ || (cell_inflation_radius_ == 0)) {
-    ros::NodeHandle nh;
+    // ros::NodeHandle nh;
     if(cell_inflation_radius_ == 0 )
-        ROS_ERROR("[%s]%s:inflation radius is zero",nh.getNamespace().c_str(),name_.c_str());
+        RCLCPP_ERROR(rclcpp::get_logger("InflationLayer"),"[%s]%s:inflation radius is zero",nh.getNamespace().c_str(),name_.c_str());
     if(!is_enabled_ )
-      ROS_ERROR("Layer is not enabled"); 
+      RCLCPP_ERROR(rclcpp::get_logger("InflationLayer"),"Layer is not enabled"); 
     return;
   }
   unsigned char *master_array = master_grid.GetCharMap();
@@ -331,7 +332,7 @@ void InflationLayer::SetInflationParameters(double inflation_radius, double cost
   }
   else
   {
-    ROS_ERROR("InflationParameters set failed!");
+    RCLCPP_ERROR(rclcpp::get_logger("InflationLayer"),"InflationParameters set failed!");
   }
 }
 

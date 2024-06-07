@@ -1,12 +1,16 @@
 #ifndef DEBUFF_LAYER_H
 #define DEBUFF_LAYER_H
 
-#include <nav_msgs/OccupancyGrid.h>
-#include "io/io.h"
-#include "map_common.h"
-#include "costmap_layer.h"
-#include "hero_msgs/Buffinfo.h"
-#include "tf/tf.h"
+#include <nav_msgs/msg/occupancy_grid.hpp>
+#include <rclcpp/subscription.hpp>
+#include <rm_decision_interfaces/msg/detail/buffinfo__struct.hpp>
+#include <tf2_ros/buffer.h>
+// #include "io/io.h"
+// #include "map_common.h"
+#include "costmap_layer.hpp"
+#include "rm_decision_interfaces/msg/buffinfo.hpp"
+#include "tf2_ros/transform_listener.h"
+// #include "tf/tf.h"
 namespace hero_costmap {
 
 class DebuffLayer : public CostmapLayer {
@@ -23,17 +27,17 @@ class DebuffLayer : public CostmapLayer {
                            double* max_x, double* max_y);
 
  private:
-  ros::Subscriber buff_info_sub_;
-  hero_msgs::Buffinfo buffInfo_;
+ rclcpp::Subscription<rm_decision_interfaces::msg::Buffinfo>::SharedPtr buff_info_sub_;
+  rm_decision_interfaces::msg::Buffinfo buffInfo_;
   bool buffinfo_received_;
   double RFID_F_x[6];
   double RFID_F_y[6];
   double RFID_height;
   double RFID_width;
-  std::shared_ptr<tf::TransformListener> listener_;
+  std::shared_ptr<tf2_ros::TransformListener> listener_;
   double inflation_;
-  void GetParam(ros::NodeHandle *nh);
-  void BuffInfoCallback(const hero_msgs::Buffinfo::ConstPtr &msg);
+  void GetParam(rclcpp::Node *nh);
+  void BuffInfoCallback(const rm_decision_interfaces::msg::Buffinfo::SharedPtr &msg);
 };
 
 }
