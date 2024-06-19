@@ -1,0 +1,5 @@
+<library path="tactic_costmap_plugin_core">
+  <class name="tactic_costmap_plugin/TacticLayer" type="tactic_costmap_plugin::TacticLayer" base_class_type="nav2_costmap_2d::Layer">
+    <description>This is an plugin which puts repeating tactic costs to costmap</description>
+  </class>
+</library>
