@@ -1,50 +1,11 @@
-/*********************************************************************
- *
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2008, 2013, Willow Garage, Inc.
- *  Copyright (c) 2020, Samsung R&D Institute Russia
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Willow Garage, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *
- * Author: Eitan Marder-Eppstein
- *         David V. Lu!!
- *         Alexey Merzlyakov
- *
- * Reference tutorial:
- * https://navigation.ros.org/tutorials/docs/writing_new_costmap2d_plugin.html
- *********************************************************************/
 #include "tactic_costmap_plugin/tactic_layer.hpp"
-
 #include "nav2_costmap_2d/costmap_math.hpp"
 #include "nav2_costmap_2d/footprint.hpp"
 #include "rclcpp/parameter_events_filter.hpp"
+#include "../../rm_common/include/math.hpp"
+#include "../../rm_common/include/rm_map.hpp"
+#include <chrono>
+#include <rclcpp/logger.hpp>
 
 using nav2_costmap_2d::LETHAL_OBSTACLE;
 using nav2_costmap_2d::INSCRIBED_INFLATED_OBSTACLE;
@@ -67,12 +28,56 @@ TacticLayer::TacticLayer()
 void
 TacticLayer::onInitialize()
 {
-  auto node = node_.lock(); 
+  node = node_.lock(); 
   declareParameter("enabled", rclcpp::ParameterValue(true));
   node->get_parameter(name_ + "." + "enabled", enabled_);
 
   need_recalculation_ = false;
   current_ = true;
+  battleinfo_received_ = false;
+  dirmap_ = NULL;
+
+  battle_position_sub_ = node->create_subscription<rm_decision_interfaces::msg::BattlePosition>(
+      "/simu_decision_info/battle_position", 100,
+      std::bind(&TacticLayer::BattlePositionCallback, this, std::placeholders::_1));
+  static_map_srv_ = node->create_client<nav_msgs::srv::GetMap>("/static_map");
+
+  RCLCPP_INFO(rclcpp::get_logger("tactic_cost"), "[TacticLayer]Initialized");
+
+  while (!battleinfo_received_) {
+    RCLCPP_INFO(rclcpp::get_logger("tactic_cost"), "[TacticLayer]Waiting battle info");
+    // rclcpp::spin_some(node);
+  }
+
+  TacticLayer::matchSize();
+  // default_value_ = FREE_SPACE;
+  // is_enabled_ = true;
+  // is_current_ = true;
+  std::string current_namespace = node->get_namespace();
+  if(current_namespace.substr(2)=="blue_decision" ||current_namespace.substr(2)=="robot_0"||current_namespace.substr(2) == "robot_1")
+  {
+    enemy_name_[0] = "robot_2";
+    enemy_name_[1] = "robot_3";
+  }
+  else if(current_namespace.substr(2)=="red_decision" ||current_namespace.substr(2)=="robot_2"||current_namespace.substr(2) == "robot_3")
+  {
+    enemy_name_[0] = "robot_0";
+    enemy_name_[1] = "robot_1";
+  }
+  else
+  {
+    RCLCPP_ERROR (rclcpp::get_logger("tactic_cost"),"tactic layer name error:%s",name_.c_str());
+    // is_enabled_ = false;
+  }
+
+  GetStaticMap();
+  //从静态地图中获取原点
+  origin_x_ = map_.info.origin.position.x;
+  origin_y_ = map_.info.origin.position.y;
+  resolution_ = map_.info.resolution;
+  // costmap_ = map_.data;
+
+
 }
 
 double  TacticLayer::GetTacticCost(double distance, int ammo)
@@ -88,7 +93,7 @@ void TacticLayer::UpdateTacticCost(std::string robot_name)
   double enemy_x,enemy_y;
   enemy_x = FindRobotPosition(robot_name).position.x;
   enemy_y = FindRobotPosition(robot_name).position.y;
-  for(int i =0;i<size_x_*size_y_;i++)
+  for(unsigned int i =0;i<size_x_*size_y_;i++)
   {
     unsigned int cell_x,cell_y;
     double map_x,map_y;
@@ -102,20 +107,63 @@ void TacticLayer::UpdateTacticCost(std::string robot_name)
       {
         if(dirmap_[i] == -128)
         {
-          costmap_[i] += GetTacticCost(distance,FindRobotPosition(robot_name).ammo);
+          map_.data[i] += GetTacticCost(distance,FindRobotPosition(robot_name).ammo);
           dirmap_[i] = (std::atan2(enemy_y - map_y,enemy_x - map_x) / M_PI) * 127;
         }
         else {
           signed char new_dir = (std::atan2(enemy_y - map_y,enemy_x - map_x) / M_PI) * 127;
           double dir_diff = (std::min(std::abs((int)new_dir - (int)dirmap_[i]),254 - std::abs((int)new_dir - (int)dirmap_[i])))*M_PI/127.0;
-          costmap_[i] = std::min((unsigned char)(((double)costmap_[i] + GetTacticCost(distance,FindRobotPosition(robot_name).ammo)) * (1.5 - 0.5 * std::cos(dir_diff) )),INSCRIBED_INFLATED_OBSTACLE);
+          map_.data[i] = std::min((unsigned char)(((double)map_.data[i] + GetTacticCost(distance,FindRobotPosition(robot_name).ammo)) * (1.5 - 0.5 * std::cos(dir_diff) )),INSCRIBED_INFLATED_OBSTACLE);
         }
       }
       else
       {
-        costmap_[i] += GetTacticCost(distance,FindRobotPosition(robot_name).ammo) * 0.3;
+        map_.data[i] += GetTacticCost(distance,FindRobotPosition(robot_name).ammo) * 0.3;
       }
     }
+  }
+}
+
+rm_decision_interfaces::msg::RobotPosition TacticLayer::FindRobotPosition(std::string robot_name)
+{
+  for (auto it = battle_position_.robots_position.begin(); it != battle_position_.robots_position.end(); ++it) {
+    if((*it).robot_name == robot_name)
+    {
+      return *(it);
+    }
+
+  }
+ // ROS_ERROR("no %s",robot_name.c_str());
+ return rm_decision_interfaces::msg::RobotPosition();
+  // return hero_msgs::RobotPosition();
+}
+
+void TacticLayer::Index2Cells(unsigned int index, unsigned int &mx, unsigned int &my){
+    my = index / size_x_;
+    mx = index - (my * size_x_);
+  }
+
+void TacticLayer::Map2World(unsigned int mx, unsigned int my, double &wx, double &wy){
+  wx = origin_x_ + (mx + 0.5) * resolution_;
+  wy = origin_y_ + (my + 0.5) * resolution_;
+}
+
+bool TacticLayer::GetStaticMap()
+{
+  if (!static_map_srv_->wait_for_service(std::chrono::seconds(1))) {
+    RCLCPP_ERROR(rclcpp::get_logger("tactic_cost"), "[TacticLayer]Failed to connect to /static_map service");
+    return false;
+  }
+
+  auto request = std::make_shared<nav_msgs::srv::GetMap::Request>();
+  auto result = static_map_srv_->async_send_request(request);
+  if (rclcpp::spin_until_future_complete(node, result) == rclcpp::FutureReturnCode::SUCCESS) {
+    RCLCPP_INFO(rclcpp::get_logger("tactic_cost"), "[TacticLayer]Received Static Map");
+    map_ = result.get()->map;
+    return true;
+  } else {
+    RCLCPP_ERROR(rclcpp::get_logger("tactic_cost"), "[TacticLayer]Failed to get static map");
+    return false;
   }
 }
 
@@ -225,6 +273,12 @@ TacticLayer::updateCosts(
       master_array[index] = cost;
     }
   }
+}
+
+void TacticLayer::BattlePositionCallback(const rm_decision_interfaces::msg::BattlePosition::ConstSharedPtr& msg)
+{
+  battle_position_ = *msg;
+  battleinfo_received_ = true;
 }
 
 }  // namespace tactic_costmap_plugin
