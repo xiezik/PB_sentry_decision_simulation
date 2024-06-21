@@ -28,7 +28,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ## Build ##
 ###########
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS proto/decision.proto)
+# protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS proto/decision.proto)
 # protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS EXPORT_MACRO DLL_EXPORT proto/decision.proto)
 # protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS DESCRIPTORS PROTO_DESCS proto/decision.proto)
 

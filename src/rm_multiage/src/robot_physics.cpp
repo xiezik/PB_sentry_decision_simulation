@@ -95,16 +95,15 @@ rm_common::ErrorInfo RobotPhysics::Init() {
     });
     
     shoot_hit_pub_ = this->create_publisher<rm_decision_interfaces::msg::JudgeSysShootHit>("judgeSysInfo/shoot_hit_event",5);
-    
-    
+        
     rclcpp::Client<nav_msgs::srv::GetMap>::SharedPtr client =
         this->create_client<nav_msgs::srv::GetMap>("/static_map");
     if (!client->wait_for_service(std::chrono::seconds(-1))) {
         RCLCPP_ERROR(this->get_logger(), "Failed to wait for service: /static_map");
     }
-    nav_msgs::srv::GetMap::Request::SharedPtr req;
-    auto result = static_map_srv_->async_send_request(req);
-    if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), result) ==
+    auto req = std::make_shared<nav_msgs::srv::GetMap::Request>();
+    auto result = client->async_send_request(req);
+    if (rclcpp::spin_until_future_complete(this->shared_from_this(), result) ==
         rclcpp::FutureReturnCode::SUCCESS)
     {
         RCLCPP_INFO(this->get_logger(),"Received Static Map");
@@ -446,7 +445,7 @@ void RobotPhysics::SendJudgeSysRequest(std::string robot_name, int command)
     srv->command = command;
     srv->robot_name = robot_name;
     auto future = judgeSysClient_->async_send_request(srv);
-    rclcpp::spin_until_future_complete(judgeSysClient_, future); // Fix for problem 1
+    rclcpp::spin_until_future_complete(this->shared_from_this(), future); // Fix for problem 1
     if (future.wait_for(std::chrono::seconds(1)) == std::future_status::ready) // Fix for problem 2
     {
         auto response = future.get();

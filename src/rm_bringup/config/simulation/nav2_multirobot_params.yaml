@@ -169,7 +169,7 @@ local_costmap:
         enabled: true
         observation_sources: scan
         scan:
-          topic: /scan
+          topic: <robot_namespace>/scan
           raytrace_max_range: 6.0
           obstacle_max_range: 6.0
           obstacle_min_range: 0.1
@@ -198,7 +198,7 @@ global_costmap:
       robot_radius: 0.2
       resolution: 0.04
       track_unknown_space: true
-      plugins: ["static_layer", "stvl_layer", "inflation_layer"]
+      plugins: ["static_layer", "inflation_layer"]
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         # https://github.com/SteveMacenski/spatio_temporal_voxel_layer
