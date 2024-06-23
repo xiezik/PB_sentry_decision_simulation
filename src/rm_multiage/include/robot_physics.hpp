@@ -37,7 +37,7 @@ namespace rmMultistage {
 class  RobotPhysics: public rclcpp::Node{
 
 public:
-     RobotPhysics(const rclcpp::NodeOptions & options);
+     explicit RobotPhysics(const rclcpp::NodeOptions & options);
      bool AddRobot(RobotTF*  robot);
 
      void PublishGimbalYaw();
@@ -60,13 +60,22 @@ public:
      void GetParam();
      void RFID_detect();
      void SendJudgeSysRequest(std::string robot_name, int command);
-     void SetRobotHeat( const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg,int index);
+
+    
+    //  void SetRobotHeat( const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg,int index);
+     void SetRobot0Heat( const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg);
+     void SetRobot1Heat( const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg);
+     void SetRobot2Heat( const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg);
+     void SetRobot3Heat( const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg);
+
+
      void GimbalsMove();
 
      void PublishSimuDecisionInfo();
      void ShootSequence();
      bool need_shooting[4];
 private:
+    // int robot_index;
     std::vector<RobotTF* > robots_;
     std::vector<Bullet* > bullets_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr pose_sub_[4];

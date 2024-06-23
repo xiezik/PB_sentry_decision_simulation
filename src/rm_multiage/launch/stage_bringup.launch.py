@@ -38,12 +38,12 @@ def generate_launch_description():
 
 
         IncludeLaunchDescription(
-                        PythonLaunchDescriptionSource(os.path.join(rm_multiage_launch_dir,'multi_stageros.py')),
+                        PythonLaunchDescriptionSource(os.path.join(rm_multiage_launch_dir,'multi_stageros.launch.py')),
                 )
 
 
         robot_0_bringup = IncludeLaunchDescription(
-                        PythonLaunchDescriptionSource(os.path.join(rm_multiage_launch_dir,'launch_robot.py')),
+                        PythonLaunchDescriptionSource(os.path.join(rm_multiage_launch_dir,'launch_robot.launch.py')),
                         launch_arguments = {
                         'namespace': "robot_0",
                         'use_namespace': 'True',
@@ -51,29 +51,29 @@ def generate_launch_description():
                         'robot_num': "robot_0"}.items()
                 )
         robot_1_bringup = IncludeLaunchDescription(
-                        PythonLaunchDescriptionSource(os.path.join(rm_multiage_launch_dir,'launch_robot.py')),
+                        PythonLaunchDescriptionSource(os.path.join(rm_multiage_launch_dir,'launch_robot.launch.py')),
                         launch_arguments = {
                         'namespace': "robot_1",
                         'use_namespace': 'True',
                         'use_sim_time': use_sim_time,
                         'robot_num': "robot_1"}.items()
                 )
-        robot_2_bringup = IncludeLaunchDescription(
-                        PythonLaunchDescriptionSource(os.path.join(rm_multiage_launch_dir,'launch_robot.py')),
-                        launch_arguments = {
-                        'namespace': "robot_2",
-                        'use_namespace': 'True',
-                        'use_sim_time': use_sim_time,
-                        'robot_num': "robot_2"}.items()
-                )
-        robot_3_bringup = IncludeLaunchDescription(
-                        PythonLaunchDescriptionSource(os.path.join(rm_multiage_launch_dir,'launch_robot.py')),
-                        launch_arguments = {
-                        'namespace': "robot_3",
-                        'use_namespace': 'True',
-                        'use_sim_time': use_sim_time,
-                        'robot_num': "robot_3"}.items()
-                )
+        # robot_2_bringup = IncludeLaunchDescription(
+        #                 PythonLaunchDescriptionSource(os.path.join(rm_multiage_launch_dir,'launch_robot.launch.py')),
+        #                 launch_arguments = {
+        #                 'namespace': "robot_2",
+        #                 'use_namespace': 'True',
+        #                 'use_sim_time': use_sim_time,
+        #                 'robot_num': "robot_2"}.items()
+        #         )
+        # robot_3_bringup = IncludeLaunchDescription(
+        #                 PythonLaunchDescriptionSource(os.path.join(rm_multiage_launch_dir,'launch_robot.py')),
+        #                 launch_arguments = {
+        #                 'namespace': "robot_3",
+        #                 'use_namespace': 'True',
+        #                 'use_sim_time': use_sim_time,
+        #                 'robot_num': "robot_3"}.items()
+        #         )
         
         start_judgesys = Node(
                 package='rm_judgesys',
@@ -84,34 +84,38 @@ def generate_launch_description():
         )
 
         start_robot_physics = Node(
-                package='rm_multistage',
+                package='rm_multiage',
                 executable='robot_physics_node',
                 name='robot_physics_node',
                 output='screen',
                 parameters=[battlefile_params]
         )
 
-        start_decision_red = Node(
-                package='rm_decision',
-                executable='collective_decision',
-                name='collective_decision',
-                output='screen',
-                launch_arguments = {
-                        'namespace': "red",
-                        'use_namespace': 'True'},
-                parameters=[battlefile_params]
-        )
+        # start_decision_red = Node(
+        #         package='rm_decision',
+        #         executable='collective_decision',
+        #         name='collective_decision',
+        #         output='screen',
+        #         arguments=[
+        #                 '--ros-args',
+        #                 '-r', '__ns:=red',
+        #                 '-p', 'use_sim_time:=True'
+        #         ],
+        #         parameters=[battlefile_params]
+        #         )
 
-        start_decision_blue = Node(
-                package='rm_decision',
-                executable='collective_decision',
-                name='collective_decision',
-                output='screen',
-                launch_arguments = {
-                        'namespace': "red",
-                        'use_namespace': 'True'},
-                parameters=[battlefile_params]
-        )
+        # start_decision_blue = Node(
+        #         package='rm_decision',
+        #         executable='collective_decision',
+        #         name='collective_decision',
+        #         output='screen',
+        #         arguments=[
+        #                 '--ros-args',
+        #                 '-r', '__ns:=blue',
+        #                 '-p', 'use_sim_time:=True'
+        #         ],
+        #         parameters=[battlefile_params]
+        #         )
 
         ld = LaunchDescription()
         # Declare the launch options
@@ -119,10 +123,10 @@ def generate_launch_description():
         ld.add_action(declare_nav_rviz_cmd)
         ld.add_action(robot_0_bringup)
         ld.add_action(robot_1_bringup)
-        ld.add_action(robot_2_bringup)
-        ld.add_action(robot_3_bringup)
+        # ld.add_action(robot_2_bringup)
+        # ld.add_action(robot_3_bringup)
         ld.add_action(start_judgesys)
         ld.add_action(start_robot_physics)
-        ld.add_action(start_decision_red)
-        ld.add_action(start_decision_blue)
+        # ld.add_action(start_decision_red)
+        # ld.add_action(start_decision_blue)
         return ld

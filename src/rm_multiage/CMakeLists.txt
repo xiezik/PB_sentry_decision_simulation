@@ -27,11 +27,12 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
   src/bullet.cpp
   src/robot_physics.cpp
   src/robot_tf.cpp
+  src/robot_physics_plugin.cpp
 )
 
 rclcpp_components_register_node(${PROJECT_NAME}
   PLUGIN RobotPhysics::RobotPhysics
-  EXECUTABLE ${PROJECT_NAME}_node
+  EXECUTABLE robot_physics_node
 )
 
 #############

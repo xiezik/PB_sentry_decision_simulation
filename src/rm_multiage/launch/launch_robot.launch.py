@@ -3,7 +3,7 @@ import yaml
 
 from ament_index_python.packages import get_package_share_directory
 
-from launch import LaunchDescription
+from launch import LaunchDescription,LaunchContext
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, TimerAction
 from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -14,6 +14,7 @@ from nav2_common.launch import ReplaceString, RewrittenYaml
 def generate_launch_description():
     # Get the launch directory
     rm_bringup_dir = get_package_share_directory('rm_bringup')
+    rm_multi_dir = get_package_share_directory('rm_multiage')
     navigation2_launch_dir = os.path.join(get_package_share_directory('rm_navigation'), 'launch')
 
     # Create the launch configuration variables
@@ -38,14 +39,27 @@ def generate_launch_description():
     ################################### slam_toolbox parameters end ###################################
 
     ################################### navigation2 parameters start ##################################
-    nav2_map_dir = PathJoinSubstitution([rm_bringup_dir, 'map', world]), ".yaml"
-    multi_loaclization_dir = os.path.join(rm_bringup_dir, 'config', 'simulation', 'multi_localization.yaml')
+    nav2_map_dir = PathJoinSubstitution([rm_multi_dir, 'maps', world]), ".yaml"
+    multi_loaclization_dir = os.path.join(rm_bringup_dir, 'config', 'simulation', 'multiage_localization.yaml')
     ################################### navigation2 parameters end ####################################
 
-    #load inital pose from multiage_localization.yaml
-    multi_params = yaml.safe_load(open(multi_loaclization_dir))
-
+    
     # Declare launch options
+    declare_robot_num_cmd = DeclareLaunchArgument(
+        'robot_num',
+        default_value='robot_0',  # 假设默认值为0，可以根据实际情况调整
+        description='Number of the robot for initialization')
+    
+    declare_param_file_cmd = DeclareLaunchArgument(
+        'params_file',
+        default_value=os.path.join(rm_bringup_dir, 'config', 'simulation', 'nav2_multirobot_params.yaml'),
+        description='Full path to the ROS2 parameters file to use for all launched nodes')
+    
+    declare_world_cmd = DeclareLaunchArgument(
+        'world',
+        default_value='rmua',
+        description='World file name')
+    
     declare_use_sim_time_cmd = DeclareLaunchArgument(
         'use_sim_time',
         default_value='True',
@@ -53,13 +67,13 @@ def generate_launch_description():
     
     declare_namespace_cmd = DeclareLaunchArgument(
         'namespace', 
-        default_value='', 
+        default_value='robbot_0', 
         description='Top-level namespace'
     )
 
     declare_use_namespace_cmd = DeclareLaunchArgument(
         'use_namespace',
-        default_value='false',
+        default_value='True',
         description='Whether to apply a namespace to the navigation stack'
     )
 
@@ -77,12 +91,15 @@ def generate_launch_description():
         'localization',
         default_value='',
         description='Choose localization method: slam_toolbox, amcl')
+    
+    #load inital pose from multiage_localization.yaml
+    multi_params = yaml.safe_load(open(multi_loaclization_dir))
 
     start_localization_group = GroupAction(
         condition = LaunchConfigurationEquals('mode', 'nav'),
         actions=[
             Node(
-                condition = LaunchConfigurationEquals('localization', 'slam_toolbox'),
+                condition = LaunchConfigurationEquals('robot_num', 'robot_0'),
                 package='slam_toolbox',
                 executable='localization_slam_toolbox_node',
                 name='slam_toolbox',
@@ -90,18 +107,63 @@ def generate_launch_description():
                     slam_toolbox_localization_file_dir,
                     {'use_sim_time': use_sim_time,
                     'map_file_name': slam_toolbox_map_dir,
-                    'map_start_pose': [float(multi_params['initial_pose_x_'+str(robot_num)]), 
-                                    float(multi_params['initial_pose_y_'+str(robot_num)]), 
-                                    float(multi_params['initial_pose_z_'+str(robot_num)])]}
+                    'map_start_pose': [
+                        float(multi_params['initial_pose_x_robot_0']),
+                        float(multi_params['initial_pose_y_robot_0']),
+                        float(multi_params['initial_pose_a_robot_0'])
+                    ]}
                 ],
             ),
 
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(os.path.join(navigation2_launch_dir,'localization_amcl_launch.py')),
-                condition = LaunchConfigurationEquals('localization', 'amcl'),
-                launch_arguments = {
-                    'use_sim_time': use_sim_time,
-                    'params_file': params_file}.items()
+            Node(
+                condition = LaunchConfigurationEquals('robot_num', 'robot_1'),
+                package='slam_toolbox',
+                executable='localization_slam_toolbox_node',
+                name='slam_toolbox',
+                parameters=[
+                    slam_toolbox_localization_file_dir,
+                    {'use_sim_time': use_sim_time,
+                    'map_file_name': slam_toolbox_map_dir,
+                    'map_start_pose': [
+                        float(multi_params['initial_pose_x_robot_1']),
+                        float(multi_params['initial_pose_y_robot_1']),
+                        float(multi_params['initial_pose_a_robot_1'])
+                    ]}
+                ],
+            ),
+
+            Node(
+                condition = LaunchConfigurationEquals('robot_num', 'robot_2'),
+                package='slam_toolbox',
+                executable='localization_slam_toolbox_node',
+                name='slam_toolbox',
+                parameters=[
+                    slam_toolbox_localization_file_dir,
+                    {'use_sim_time': use_sim_time,
+                    'map_file_name': slam_toolbox_map_dir,
+                    'map_start_pose': [
+                        float(multi_params['initial_pose_x_robot_2']),
+                        float(multi_params['initial_pose_y_robot_2']),
+                        float(multi_params['initial_pose_a_robot_2'])
+                    ]}
+                ],
+            ),
+
+            Node(
+                condition = LaunchConfigurationEquals('robot_num', 'robot_3'),
+                package='slam_toolbox',
+                executable='localization_slam_toolbox_node',
+                name='slam_toolbox',
+                parameters=[
+                    slam_toolbox_localization_file_dir,
+                    {'use_sim_time': use_sim_time,
+                    'map_file_name': slam_toolbox_map_dir,
+                    'map_start_pose': [
+                        float(multi_params['initial_pose_x_robot_3']),
+                        float(multi_params['initial_pose_y_robot_3']),
+                        float(multi_params['initial_pose_a_robot_3'])
+                    ]}
+                ],
             ),
 
             IncludeLaunchDescription(
@@ -138,6 +200,11 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     # Declare the launch options
+    ld.add_action(declare_robot_num_cmd)
+    ld.add_action(declare_use_namespace_cmd)
+    ld.add_action(declare_world_cmd)
+    ld.add_action(declare_namespace_cmd)
+    ld.add_action(declare_param_file_cmd)
     ld.add_action(declare_use_sim_time_cmd)
     ld.add_action(declare_nav_rviz_cmd)
     ld.add_action(declare_mode_cmd)

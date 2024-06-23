@@ -61,18 +61,33 @@ rm_common::ErrorInfo RobotPhysics::Init() {
     rclcpp::SensorDataQoS(), 
     std::bind(&RobotPhysics::PoseCallback, this, std::placeholders::_1));
 
-    roboHeat_ptr[0] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_0/heat_power", 
+    roboHeat_ptr[0] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>(
+    "/judgeSysInfo/robot_0/heat_power", 
     rclcpp::SensorDataQoS(), 
-    std::bind(&RobotPhysics::SetRobotHeat, this, std::placeholders::_1,0));
-    roboHeat_ptr[1] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_1/heat_power", 
+    [this](const rm_decision_interfaces::msg::RobotHeat::SharedPtr msg) {
+        this->SetRobot0Heat(msg);
+    });
+
+    roboHeat_ptr[1] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>(
+        "/judgeSysInfo/robot_1/heat_power", 
+        rclcpp::SensorDataQoS(), 
+        [this](const rm_decision_interfaces::msg::RobotHeat::SharedPtr msg) {
+            this->SetRobot1Heat(msg);
+        });
+
+    roboHeat_ptr[2] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>(
+    "/judgeSysInfo/robot_0/heat_power", 
     rclcpp::SensorDataQoS(), 
-    std::bind(&RobotPhysics::SetRobotHeat, this, std::placeholders::_1,1));
-    roboHeat_ptr[2] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_2/heat_power", 
-    rclcpp::SensorDataQoS(), 
-    std::bind(&RobotPhysics::SetRobotHeat, this, std::placeholders::_1,2));
-    roboHeat_ptr[3] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>("/judgeSysInfo/robot_3/heat_power", 
-    rclcpp::SensorDataQoS(), 
-    std::bind(&RobotPhysics::SetRobotHeat, this, std::placeholders::_1,3));
+    [this](const rm_decision_interfaces::msg::RobotHeat::SharedPtr msg) {
+        this->SetRobot2Heat(msg);
+    });
+
+    roboHeat_ptr[3] = this->create_subscription<rm_decision_interfaces::msg::RobotHeat>(
+        "/judgeSysInfo/robot_1/heat_power", 
+        rclcpp::SensorDataQoS(), 
+        [this](const rm_decision_interfaces::msg::RobotHeat::SharedPtr msg) {
+            this->SetRobot3Heat(msg);
+        });
 
     bulletsInfo_pub_ = this->create_publisher<rm_decision_interfaces::msg::BulletsInfo>("robot_physic/bullet_info", 5);
     
@@ -406,11 +421,29 @@ void RobotPhysics::SendShootRobotInfo(std::string robot_name)
 }
 
 
-void RobotPhysics::SetRobotHeat(const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg, int index)
+// void RobotPhysics::SetRobotHeat(const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg, int index)
+// {
+//     robotHeat[index] = msg;
+// }
+void RobotPhysics::SetRobot0Heat(const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg)
 {
-    robotHeat[index] = msg;
+    robotHeat[0] = msg;
 }
 
+void RobotPhysics::SetRobot1Heat(const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg)
+{
+    robotHeat[1] = msg;
+}
+
+void RobotPhysics::SetRobot2Heat(const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg)
+{
+    robotHeat[2] = msg;
+}
+
+void RobotPhysics::SetRobot3Heat(const rm_decision_interfaces::msg::RobotHeat::SharedPtr& msg)
+{
+    robotHeat[3] = msg;
+}
 void RobotPhysics::RFID_detect()
 {
     int i,j;
@@ -507,55 +540,9 @@ void RobotPhysics::ShootSequence()
     for(int i =0;i<4;i++)
         need_shooting[i] = false;
 }
-}
+}  // namespace rmMultistage
+#include "rclcpp_components/register_node_macro.hpp"
+RCLCPP_COMPONENTS_REGISTER_NODE(rmMultistage::RobotPhysics)
 
-
-
-void ROS_Spin()
-{
-    rclcpp::spin(std::make_shared<rmMultistage::RobotPhysics>());
-}
-
-int main(int argc, char** argv){
-    // Initialize the ROS 2 system
-    rclcpp::init(argc, argv);
-
-    // Create NodeOptions object
-    rclcpp::NodeOptions options;
-
-    // Use NodeOptions object to create RobotPhysics object
-    auto robotPhysics = std::make_shared<rmMultistage::RobotPhysics>(options);
-
-    // Create a thread to spin the ROS 2 node
-    std::thread spin_thread(ROS_Spin);
-int ms = 0;
-int ms_last = 0;
-struct timeval tv;
-struct timezone tz;
-
-while (rclcpp::ok()) {
-    gettimeofday(&tv, &tz);
-    ms_last = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-
-    robotPhysics->GimbalsMove();
-    robotPhysics->PublishGimbalYaw();
-    robotPhysics->LetBulletsFly(50);
-    robotPhysics->PublishBulletsInfo();
-    robotPhysics->BulletJudge();
-    robotPhysics->ArmorHitDetect();
-    robotPhysics->RFID_detect();
-    robotPhysics->PublishSimuDecisionInfo();
-    robotPhysics->ShootSequence();
-
-    gettimeofday(&tv, &tz);
-    ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-    if (ms - ms_last < 20) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(20 - (ms - ms_last)));
-    }
-}
-
-rclcpp::shutdown();
-return 0;
-}
 
 
